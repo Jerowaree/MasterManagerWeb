@@ -4,7 +4,24 @@ import { Controller, Get } from "@nestjs/common";
 export class AppController {
   @Get()
   getHello() {
-    return { message: "API NestJS lista en el monorepo" };
+    return {
+      message: "API modular multi-tenant activa",
+      domains: [
+        "auth",
+        "users",
+        "companies",
+        "branches",
+        "subscriptions",
+        "payments",
+        "sales",
+        "purchases",
+        "inventory",
+        "customers",
+        "suppliers",
+        "reports",
+        "notifications",
+        "peru"
+      ]
+    };
   }
 }
-

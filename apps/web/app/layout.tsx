@@ -1,15 +1,17 @@
-import type { ReactNode } from "react";
+import type { Metadata } from "next";
+import "./globals.css";
 
-export const metadata = {
-  title: "Master Manager Web",
-  description: "Monorepo Next.js + NestJS + Prisma + PostgreSQL"
+export const metadata: Metadata = {
+  title: "Master Manager",
+  description: "Sistema de gestión empresarial multi-sucursal"
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
       <body>{children}</body>
     </html>
   );
 }
-
