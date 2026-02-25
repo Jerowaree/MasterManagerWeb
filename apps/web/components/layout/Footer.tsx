@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Twitter, Github, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
+import { ShieldCheck, Twitter, Github, Linkedin, Mail, MapPin } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -28,8 +28,10 @@ export function Footer() {
         <div>
           <h4 className="text-white font-bold mb-6">Producto</h4>
           <ul className="space-y-4 text-sm">
-            <li><Link href="#features" className="hover:text-white transition-colors">Funcionalidades</Link></li>
-            <li><Link href="#pricing" className="hover:text-white transition-colors">Precios</Link></li>
+            <li><Link href="/#features" className="hover:text-white transition-colors">Funcionalidades</Link></li>
+            <li><Link href="/#pricing" className="hover:text-white transition-colors">Precios</Link></li>
+            <li><Link href="/soporte" className="hover:text-white transition-colors">Soporte</Link></li>
+            <li><Link href="/contacto" className="hover:text-white transition-colors">Contacto</Link></li>
             <li><Link href="#" className="hover:text-white transition-colors">Seguridad</Link></li>
             <li><Link href="#" className="hover:text-white transition-colors">API Docs</Link></li>
           </ul>

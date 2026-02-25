@@ -3,14 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Menu, X, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { name: 'Funcionalidades', href: '/#features' },
   { name: 'Precios', href: '/#pricing' },
+  { name: 'Contacto', href: '/contacto' },
   { name: 'Blog', href: '/blog' },
-  { name: 'Soporte', href: '#support' },
+  { name: 'Soporte', href: '/soporte' },
 ];
 
 export function Navbar() {
