@@ -7,6 +7,7 @@ export type Plan = {
   monthlyPrice: number;
   yearlyPrice: number;
   features: string[];
+  recommended?: boolean;
 };
 
 export type CountryVariant = {
@@ -17,13 +18,15 @@ export type CountryVariant = {
 };
 
 const globalFeatures = {
-  inventory: "Control de inventario por sucursal",
-  sales: "Gestión de ventas y clientes",
-  reports: "Reportes operativos en tiempo real",
-  purchases: "Gestión de compras y proveedores",
-  fiscalPE: "Reglas fiscales para SUNAT (Perú)",
-  multibranch: "Operación multi-sucursal",
-  support: "Soporte prioritario"
+  inventory: "Control de inventario multi-sucursal",
+  sales: "Ventas y Facturación",
+  reports: "Reportes Avanzados",
+  purchases: "Gestión de Compras",
+  fiscalPE: "Cumplimiento Fiscal SUNAT",
+  multibranch: "Uso Multi-Sucursal",
+  support: "Soporte 24/7",
+  api: "Acceso a API Rest",
+  users: "Usuarios Ilimitados"
 };
 
 export const countryVariants: Record<string, CountryVariant> = {
@@ -33,25 +36,41 @@ export const countryVariants: Record<string, CountryVariant> = {
     locale: "es-PE",
     plans: [
       {
-        id: "inicio",
-        name: "Inicio",
-        description: "Para negocios en crecimiento",
-        monthlyPrice: 79,
-        yearlyPrice: 790,
-        features: [globalFeatures.sales, globalFeatures.inventory, globalFeatures.multibranch]
+        id: "lite",
+        name: "Emprendedor",
+        description: "Ideal para iniciar",
+        monthlyPrice: 49.90,
+        yearlyPrice: 499,
+        features: [globalFeatures.sales, globalFeatures.inventory, "Hasta 2 sucursales"]
       },
       {
-        id: "pro-pe",
-        name: "Pro Perú",
-        description: "Incluye cumplimiento fiscal local",
-        monthlyPrice: 149,
-        yearlyPrice: 1490,
+        id: "pro",
+        name: "Crecimiento",
+        description: "El más popular para PYMES",
+        monthlyPrice: 89.90,
+        yearlyPrice: 899,
+        recommended: true,
+        features: [
+          globalFeatures.sales, 
+          globalFeatures.inventory, 
+          globalFeatures.reports, 
+          globalFeatures.fiscalPE,
+          "Sucursales Ilimitadas"
+        ]
+      },
+      {
+        id: "enterprise",
+        name: "Corporativo",
+        description: "Control total de tu imperio",
+        monthlyPrice: 149.90,
+        yearlyPrice: 1499,
         features: [
           globalFeatures.sales,
           globalFeatures.inventory,
-          globalFeatures.purchases,
           globalFeatures.reports,
+          globalFeatures.purchases,
           globalFeatures.fiscalPE,
+          globalFeatures.api,
           globalFeatures.support
         ]
       }
@@ -63,25 +82,39 @@ export const countryVariants: Record<string, CountryVariant> = {
     locale: "en-US",
     plans: [
       {
-        id: "starter",
+        id: "lite-global",
         name: "Starter",
-        description: "Simple operations for SMBs",
-        monthlyPrice: 29,
-        yearlyPrice: 290,
-        features: [globalFeatures.sales, globalFeatures.inventory]
+        description: "Perfect for new businesses",
+        monthlyPrice: 14.90,
+        yearlyPrice: 149,
+        features: [globalFeatures.sales, globalFeatures.inventory, "Up to 2 branches"]
       },
       {
-        id: "growth",
-        name: "Growth",
-        description: "Advanced multi-branch workflows",
-        monthlyPrice: 59,
-        yearlyPrice: 590,
+        id: "pro-global",
+        name: "Professional",
+        description: "Scale your operation",
+        monthlyPrice: 24.90,
+        yearlyPrice: 249,
+        recommended: true,
         features: [
           globalFeatures.sales,
           globalFeatures.inventory,
-          globalFeatures.purchases,
           globalFeatures.reports,
-          globalFeatures.multibranch,
+          globalFeatures.multibranch
+        ]
+      },
+      {
+        id: "enterprise-global",
+        name: "Enterprise",
+        description: "Unlimited scale and features",
+        monthlyPrice: 39.90,
+        yearlyPrice: 399,
+        features: [
+          globalFeatures.sales,
+          globalFeatures.inventory,
+          globalFeatures.reports,
+          globalFeatures.purchases,
+          globalFeatures.api,
           globalFeatures.support
         ]
       }
@@ -93,7 +126,6 @@ export function resolveCountryVariant(countryCode?: string): CountryVariant {
   if (countryCode === "PE") {
     return countryVariants.PE;
   }
-
   return countryVariants.GLOBAL;
 }
 
@@ -101,6 +133,6 @@ export function formatPrice(amount: number, currency: Currency, locale: string) 
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
-    maximumFractionDigits: 0
+    minimumFractionDigits: 2
   }).format(amount);
 }

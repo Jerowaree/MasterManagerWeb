@@ -1,4 +1,8 @@
 import { Module } from "@nestjs/common";
+import { PeruService } from './peru.service';
 
-@Module({})
+@Module({
+  providers: [PeruService],
+  exports: [PeruService],
+})
 export class PeruModule {}

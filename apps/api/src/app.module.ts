@@ -1,6 +1,9 @@
 import { Module } from "@nestjs/common";
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from "./app.controller";
 import { AuthModule } from "./modules/auth/auth.module";
+import { PrismaModule } from "./modules/prisma/prisma.module";
 import { UsersModule } from "./modules/users/users.module";
 import { CompaniesModule } from "./modules/companies/companies.module";
 import { BranchesModule } from "./modules/branches/branches.module";
@@ -14,9 +17,16 @@ import { SuppliersModule } from "./modules/suppliers/suppliers.module";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { PeruModule } from "./modules/peru/peru.module";
+import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
+import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
+import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
+
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
+    PrismaModule,
     AuthModule,
     UsersModule,
     CompaniesModule,
@@ -33,6 +43,23 @@ import { PeruModule } from "./modules/peru/peru.module";
     PeruModule
   ],
   controllers: [AppController],
-  providers: []
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditLogInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TenantInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformResponseInterceptor,
+    },
+  ],
 })
 export class AppModule {}

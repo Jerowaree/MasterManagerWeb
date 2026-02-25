@@ -11,12 +11,14 @@
   "pnpm": {
     "recursiveInstall": true
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "devDependencies": {
-    "turbo": "^2.0.0",
-    "typescript": "^5.6.0"
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@vitejs/plugin-react": "^5.1.4",
+    "@vitest/ui": "^4.0.18",
+    "jsdom": "^28.1.0",
+    "turbo": "^2.8.10",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
