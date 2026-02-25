@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from "./app.controller";
@@ -17,9 +17,11 @@ import { SuppliersModule } from "./modules/suppliers/suppliers.module";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { PeruModule } from "./modules/peru/peru.module";
+import { SecurityModule } from "./modules/security/security.module";
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
+import { CsrfMiddleware } from './common/middlewares/csrf.middleware';
 
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -40,7 +42,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     SuppliersModule,
     ReportsModule,
     NotificationsModule,
-    PeruModule
+    PeruModule,
+    SecurityModule,
   ],
   controllers: [AppController],
   providers: [
@@ -62,4 +65,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CsrfMiddleware).forRoutes('*');
+  }
+}

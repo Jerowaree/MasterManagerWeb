@@ -20,11 +20,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormData } from '@/lib/validations';
 import { useToast } from '@/contexts/ToastContext';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [submissionStartedAt] = useState<number>(() => Date.now());
   const { showToast } = useToast();
 
   const {
@@ -39,11 +41,15 @@ export default function LoginPage() {
     setLoading(true);
     setServerError(null);
     try {
-      const response = await fetch('http://localhost:3001/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          ...data,
+          website: '',
+          submissionStartedAt,
+        })
       });
 
       if (response.ok) {

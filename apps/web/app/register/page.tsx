@@ -21,6 +21,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterFormData } from '@/lib/validations';
 import { useToast } from '@/contexts/ToastContext';
 import Link from 'next/link';
+import { PasswordStrengthHint } from '@/components/forms/PasswordStrengthHint';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 const steps = [
   { id: 'auth', title: 'Cuenta', icon: Lock, fields: ['email', 'password'] },
@@ -33,12 +35,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [submissionStartedAt] = useState<number>(() => Date.now());
   const { showToast } = useToast();
 
   const {
     register,
     handleSubmit,
     trigger,
+    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -60,13 +64,14 @@ export default function RegisterPage() {
       setCurrentStep(curr => curr - 1);
     }
   };
+  const passwordValue = watch('password', '');
 
   const onSubmit = async (data: RegisterFormData) => {
     setLoading(true);
     setServerError(null);
     
     try {
-      const response = await fetch('http://localhost:3001/auth/register', {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -74,7 +79,9 @@ export default function RegisterPage() {
           ...data,
           currency: data.country === 'PE' ? 'PEN' : 'USD',
           timezone: 'UTC',
-          branchName: 'Sede Principal'
+          branchName: 'Sede Principal',
+          website: '',
+          submissionStartedAt,
         })
       });
 
@@ -261,7 +268,7 @@ export default function RegisterPage() {
                     {errors.password ? (
                       <p className="text-xs text-red-500 pl-1">{errors.password.message}</p>
                     ) : (
-                      <p className="text-[10px] text-gray-400 pl-1 uppercase tracking-wider font-bold">Mínimo 8 caracteres, incluye símbolos</p>
+                      <PasswordStrengthHint password={passwordValue} className="pl-1" />
                     )}
                   </div>
                 </motion.div>

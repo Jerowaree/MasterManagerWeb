@@ -1,9 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+﻿import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { InventoryMovement, UserRole } from '@prisma/client';
+import { MovementType, UserRole } from '@prisma/client';
 import { MailService } from '../notifications/mail.service';
 import * as XLSX from 'xlsx';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
+import { getLocalDayUtcRange, isValidIanaTimeZone } from '../../common/utils/timezone-range.utils';
+import { SaleStatus } from '../../common/types/enums';
+import { tenantStorage } from '../../common/store/tenant.store';
 
 @Injectable()
 export class ReportsService {
@@ -14,229 +17,321 @@ export class ReportsService {
     private mailService: MailService,
   ) {}
 
-  async getDashboardSummary() {
-    const now = new Date();
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
-
-    const yesterdayStart = new Date(todayStart);
-    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-
-    const [
-      totalSalesAgg, 
-      totalCustomers, 
-      totalBranches, 
-      recentSales, 
-      salesTodayAgg, 
-      salesYesterdayAgg
-    ] = await Promise.all([
-      this.prisma.client.sale.aggregate({
-        _sum: { total: true },
-        where: { deletedAt: null },
-      }),
-      this.prisma.client.customer.count({
-        where: { deletedAt: null },
-      }),
-      this.prisma.client.branch.count({
-        where: { deletedAt: null },
-      }),
-      this.prisma.client.sale.findMany({
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        include: { customer: true, branch: true },
-        where: { deletedAt: null },
-      }),
-      this.prisma.client.sale.aggregate({
-        _sum: { total: true },
-        where: {
-          createdAt: { gte: todayStart },
-          deletedAt: null,
-        },
-      }),
-      this.prisma.client.sale.aggregate({
-        _sum: { total: true },
-        where: {
-          createdAt: { gte: yesterdayStart, lt: todayStart },
-          deletedAt: null,
-        },
-      }),
-    ]);
-
-    const todayRevenue = Number(salesTodayAgg._sum.total || 0);
-    const yesterdayRevenue = Number(salesYesterdayAgg._sum.total || 0);
-    const totalRevenue = Number(totalSalesAgg._sum.total || 0);
-
-    // Calculate trend
-    let revenueTrend = 0;
-    if (yesterdayRevenue > 0) {
-      revenueTrend = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
-    } else if (todayRevenue > 0) {
-      revenueTrend = 100;
-    }
-
-    return {
-      stats: {
-        totalRevenue,
-        todayRevenue,
-        revenueTrend: revenueTrend.toFixed(1),
-        customerCount: totalCustomers,
-        branchCount: totalBranches,
-      },
-      recentSales,
-    };
+  private withTenantContext<T>(companyId: string, fn: () => Promise<T>) {
+    return tenantStorage.run({ companyId }, fn);
   }
 
-  async getCashClosing(branchId?: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const where: any = {
-      createdAt: { gte: today },
-      deletedAt: null,
-    };
-
-    if (branchId) {
-      where.branchId = branchId;
-    }
-
-    const [salesSummary, salesList] = await Promise.all([
-      this.prisma.client.sale.aggregate({
-        _sum: { total: true },
-        _count: { id: true },
-        where,
-      }),
-      this.prisma.client.sale.findMany({
-        where,
-        include: { customer: true, branch: true },
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
-
-    return {
-      date: today.toISOString(),
-      totalAmount: salesSummary._sum.total || 0,
-      count: salesSummary._count.id,
-      sales: salesList,
-    };
+  private buildReportHtml() {
+    return `
+      <div style="font-family: sans-serif; color: #333;">
+        <h2 style="color: #7c3aed;">Hola de Master Manager</h2>
+        <p>Adjunto encontraras el reporte solicitado generado automaticamente por el sistema.</p>
+        <hr style="border: 1px solid #eee; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #999;">Este es un correo automatico, por favor no respondas.</p>
+      </div>
+    `;
   }
 
-  async getInventoryValorization() {
-    const movements = await this.prisma.client.inventoryMovement.findMany({
-      where: { deletedAt: null },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    // Group by product to calculate stock and average cost or latest cost
-    const valorization: Record<string, { stock: number; totalValue: number; latestCost: number }> = {};
-
-    movements.forEach((mov: InventoryMovement) => {
-      if (!valorization[mov.productId]) {
-        valorization[mov.productId] = { stock: 0, totalValue: 0, latestCost: 0 };
-      }
-
-      const qty = Number(mov.quantity);
-      const cost = Number(mov.unitCost);
-
-      if (mov.type === 'IN') {
-        valorization[mov.productId].stock += qty;
-        valorization[mov.productId].latestCost = cost;
-      } else if (mov.type === 'OUT') {
-        valorization[mov.productId].stock -= qty;
-      }
-    });
-
-    const products = Object.entries(valorization).map(([id, data]) => ({
-      productId: id,
-      stock: data.stock,
-      latestCost: data.latestCost,
-      totalValue: data.stock * data.latestCost,
-    }));
-
-    const totalPortfolioValue = products.reduce((acc, p) => acc + p.totalValue, 0);
-
-    return {
-      totalPortfolioValue,
-      products,
-    };
-  }
-
-  async sendReportByEmail(userEmail: string, type: 'sales' | 'inventory') {
+  private async buildReportAttachment(companyId: string, type: 'sales' | 'inventory') {
     let data: any[] = [];
     let filename = '';
     let subject = '';
 
     if (type === 'sales') {
-      const sales = await this.prisma.client.sale.findMany({
-        where: { deletedAt: null },
-        include: { customer: true, branch: true },
-        orderBy: { createdAt: 'desc' },
-      });
+      const sales = await this.withTenantContext<any[]>(companyId, () =>
+        this.prisma.client.sale.findMany({
+          where: { companyId, deletedAt: null },
+          include: { customer: true, branch: true },
+          orderBy: { createdAt: 'desc' },
+        }),
+      );
+
       data = sales.map((s: any) => ({
         ID: s.id.slice(0, 8),
-        Cliente: s.customer?.name || 'Venta Rápida',
+        Cliente: s.customer?.name || 'Venta Rapida',
         Sede: s.branch?.name,
         Fecha: s.createdAt.toLocaleDateString(),
         Total: Number(s.total),
         Estado: s.status,
       }));
       filename = `Reporte_Ventas_${new Date().toISOString().split('T')[0]}.xlsx`;
-      subject = '📊 Reporte Automático de Ventas - Master Manager';
+      subject = 'Reporte Automatico de Ventas - Master Manager';
     } else {
-      const val = await this.getInventoryValorization();
-      data = val.products.map((p) => ({
+      const val = await this.getInventoryValorization(companyId);
+      data = val.products.map((p: any) => ({
         Producto: p.productId,
         Stock: p.stock,
         UltimoCosto: p.latestCost,
         ValorTotal: p.totalValue,
       }));
       filename = `Valorizacion_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`;
-      subject = '📦 Reporte de Valorización de Inventario - Master Manager';
+      subject = 'Reporte de Valorizacion de Inventario - Master Manager';
     }
 
-    // Generate Excel Buffer
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, 'Datos');
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
-    // Send Mail
-    const html = `
-      <div style="font-family: sans-serif; color: #333;">
-        <h2 style="color: #7c3aed;">Hola de Master Manager</h2>
-        <p>Adjunto encontrarás el reporte solicitado generado automáticamente por el sistema.</p>
-        <hr style="border: 1px solid #eee; margin: 20px 0;" />
-        <p style="font-size: 12px; color: #999;">Este es un correo automático, por favor no respondas.</p>
-      </div>
-    `;
-
-    return this.mailService.sendMailWithAttachment(userEmail, subject, html, filename, buffer);
+    return { subject, filename, buffer };
   }
 
-  @Cron('0 8 * * 1') // Every Monday at 8:00 AM
+  async getDashboardSummary(companyId: string) {
+    return this.withTenantContext(companyId, async () => {
+      const company = await this.prisma.client.company.findFirst({
+        where: { id: companyId, deletedAt: null },
+        select: { timezone: true },
+      });
+
+      const businessTimeZone = company?.timezone && isValidIanaTimeZone(company.timezone)
+        ? company.timezone
+        : 'UTC';
+
+      const now = new Date();
+      const { startUtc: todayStartUtc, endUtc: todayEndUtc } = getLocalDayUtcRange(now, businessTimeZone);
+      const { startUtc: yesterdayStartUtc } = getLocalDayUtcRange(
+        new Date(todayStartUtc.getTime() - 60 * 1000),
+        businessTimeZone,
+      );
+
+      const [
+        totalSalesAgg,
+        totalCustomers,
+        totalBranches,
+        recentSales,
+        salesTodayAgg,
+        salesYesterdayAgg,
+      ] = await Promise.all([
+        this.prisma.client.sale.aggregate({
+          _sum: { total: true },
+          where: { companyId, deletedAt: null, status: SaleStatus.PAID },
+        }),
+        this.prisma.client.customer.count({
+          where: { companyId, deletedAt: null },
+        }),
+        this.prisma.client.branch.count({
+          where: { companyId, deletedAt: null },
+        }),
+        this.prisma.client.sale.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          include: { customer: true, branch: true },
+          where: { companyId, deletedAt: null },
+        }),
+        this.prisma.client.sale.aggregate({
+          _sum: { total: true },
+          where: {
+            companyId,
+            createdAt: { gte: todayStartUtc, lt: todayEndUtc },
+            status: SaleStatus.PAID,
+            deletedAt: null,
+          },
+        }),
+        this.prisma.client.sale.aggregate({
+          _sum: { total: true },
+          where: {
+            companyId,
+            createdAt: { gte: yesterdayStartUtc, lt: todayStartUtc },
+            status: SaleStatus.PAID,
+            deletedAt: null,
+          },
+        }),
+      ]);
+
+      const todayRevenue = Number(salesTodayAgg._sum.total || 0);
+      const yesterdayRevenue = Number(salesYesterdayAgg._sum.total || 0);
+      const totalRevenue = Number(totalSalesAgg._sum.total || 0);
+
+      let revenueTrend = 0;
+      if (yesterdayRevenue > 0) {
+        revenueTrend = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
+      } else if (todayRevenue > 0) {
+        revenueTrend = 100;
+      }
+
+      return {
+        stats: {
+          totalRevenue,
+          todayRevenue,
+          revenueTrend: revenueTrend.toFixed(1),
+          customerCount: totalCustomers,
+          branchCount: totalBranches,
+          timeZone: businessTimeZone,
+        },
+        recentSales,
+      };
+    });
+  }
+
+  async getCashClosing(companyId: string, branchId?: string) {
+    return this.withTenantContext(companyId, async () => {
+      const company = await this.prisma.client.company.findFirst({
+        where: { id: companyId, deletedAt: null },
+        select: { timezone: true },
+      });
+
+      const businessTimeZone = company?.timezone && isValidIanaTimeZone(company.timezone)
+        ? company.timezone
+        : 'UTC';
+      const { startUtc, endUtc } = getLocalDayUtcRange(new Date(), businessTimeZone);
+
+      const where: any = {
+        companyId,
+        createdAt: { gte: startUtc, lt: endUtc },
+        status: SaleStatus.PAID,
+        deletedAt: null,
+      };
+
+      if (branchId) {
+        where.branchId = branchId;
+      }
+
+      const [salesSummary, salesList] = await Promise.all([
+        this.prisma.client.sale.aggregate({
+          _sum: { total: true },
+          _count: { id: true },
+          where,
+        }),
+        this.prisma.client.sale.findMany({
+          where,
+          include: { customer: true, branch: true },
+          orderBy: { createdAt: 'desc' },
+        }),
+      ]);
+
+      return {
+        date: startUtc.toISOString(),
+        timeZone: businessTimeZone,
+        totalAmount: salesSummary._sum.total || 0,
+        count: salesSummary._count.id,
+        sales: salesList,
+      };
+    });
+  }
+
+  async getInventoryValorization(companyId: string, branchId?: string) {
+    return this.withTenantContext(companyId, async () => {
+      const stockWhere: any = { companyId };
+      const movementWhere: any = {
+        companyId,
+        deletedAt: null,
+        type: MovementType.IN,
+      };
+
+      if (branchId) {
+        stockWhere.branchId = branchId;
+        movementWhere.branchId = branchId;
+      }
+
+      const [stocks, latestCosts] = await Promise.all([
+        this.prisma.client.productStock.findMany({
+          where: stockWhere,
+          select: { productId: true, quantity: true },
+        }),
+        this.prisma.client.inventoryMovement.findMany({
+          where: movementWhere,
+          distinct: ['productId'],
+          orderBy: [{ productId: 'asc' }, { createdAt: 'desc' }],
+          select: { productId: true, unitCost: true },
+        }),
+      ]);
+
+      const unitCostByProduct = new Map<string, number>(
+        latestCosts.map((entry: { productId: string; unitCost: number }) => [
+          entry.productId,
+          Number(entry.unitCost),
+        ]),
+      );
+
+      const products = stocks.map((stock: { productId: string; quantity: number }) => {
+        const currentStock = Number(stock.quantity);
+        const latestCost = unitCostByProduct.get(stock.productId) ?? 0;
+
+        return {
+          productId: stock.productId,
+          stock: currentStock,
+          latestCost,
+          totalValue: currentStock * latestCost,
+        };
+      });
+
+      const totalPortfolioValue = products.reduce(
+        (acc: number, p: { totalValue: number }) => acc + p.totalValue,
+        0
+      );
+
+      return {
+        totalPortfolioValue,
+        products,
+      };
+    });
+  }
+
+  async sendReportByEmail(companyId: string, userEmail: string, type: 'sales' | 'inventory') {
+    const { subject, filename, buffer } = await this.buildReportAttachment(companyId, type);
+    return this.mailService.sendMailWithAttachment(
+      userEmail,
+      subject,
+      this.buildReportHtml(),
+      filename,
+      buffer
+    );
+  }
+
+  @Cron('0 8 * * 1')
   async handleWeeklyReports() {
     this.logger.log('Starting weekly automated reports distribution...');
 
     try {
-      // Find all active owners/admins
-      const recipients: { email: string }[] = await this.prisma.client.user.findMany({
-        where: {
-          role: { in: [UserRole.owner, UserRole.admin] },
-          deletedAt: null,
-        },
-        select: { email: true },
-      });
+      const recipients: { email: string; companyId: string }[] = await tenantStorage.run(
+        { isPublic: true },
+        async () =>
+          this.prisma.client.user.findMany({
+            where: {
+              role: { in: [UserRole.owner, UserRole.admin] },
+              deletedAt: null,
+            },
+            select: { email: true, companyId: true },
+          })
+      );
 
       if (recipients.length === 0) {
         this.logger.warn('No recipients found for weekly reports.');
         return;
       }
 
-      const emails = recipients.map(u => u.email);
-      this.logger.log(`Found ${emails.length} recipients. Sending reports...`);
+      this.logger.log(`Found ${recipients.length} recipients. Sending reports...`);
 
-      for (const email of emails) {
-        await this.sendReportByEmail(email, 'sales');
-        await this.sendReportByEmail(email, 'inventory');
+      const groupedByCompany = recipients.reduce(
+        (acc: Map<string, string[]>, recipient: { companyId: string; email: string }) => {
+          const existing = acc.get(recipient.companyId) ?? [];
+          existing.push(recipient.email);
+          acc.set(recipient.companyId, existing);
+          return acc;
+        },
+        new Map<string, string[]>()
+      );
+
+      for (const [companyId, emails] of groupedByCompany.entries()) {
+        const salesAttachment = await this.buildReportAttachment(companyId, 'sales');
+        const inventoryAttachment = await this.buildReportAttachment(companyId, 'inventory');
+
+        for (const email of emails) {
+          await this.mailService.sendMailWithAttachment(
+            email,
+            salesAttachment.subject,
+            this.buildReportHtml(),
+            salesAttachment.filename,
+            salesAttachment.buffer
+          );
+          await this.mailService.sendMailWithAttachment(
+            email,
+            inventoryAttachment.subject,
+            this.buildReportHtml(),
+            inventoryAttachment.filename,
+            inventoryAttachment.buffer
+          );
+        }
       }
 
       this.logger.log('Weekly reports distribution completed successfully.');

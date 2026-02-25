@@ -10,6 +10,7 @@ datasource db {
 model Company {
   id           String              @id @default(uuid()) @db.Uuid
   name         String
+  emailDomain  String
   country      String
   currency     String
   timezone     String
@@ -22,9 +23,11 @@ model Company {
   branches     Branch[]
   customers    Customer[]
   movements    InventoryMovement[]
+  productStocks ProductStock[]
   payments     PaymentLog[]
   purchases    Purchase[]
   sales        Sale[]
+  saleItems    SaleItem[]
   subscription Subscription?
   suppliers    Supplier[]
   users        User[]
@@ -42,6 +45,7 @@ model Branch {
   company   Company             @relation(fields: [companyId], references: [id])
   customers Customer[]
   movements InventoryMovement[]
+  productStocks ProductStock[]
   purchases Purchase[]
   sales     Sale[]
   users     User[]
@@ -57,6 +61,8 @@ model User {
   role         UserRole
   email        String
   passwordHash String
+  sessionVersion Int      @default(0)
+  refreshTokenHash String?
   createdAt    DateTime   @default(now())
   deletedAt    DateTime?
   logs         AuditLog[]
@@ -64,6 +70,7 @@ model User {
   company      Company    @relation(fields: [companyId], references: [id])
 
   @@unique([companyId, email])
+  @@unique([email])
   @@index([companyId])
   @@index([branchId])
   @@index([createdAt])
@@ -111,6 +118,11 @@ model Sale {
   companyId  String    @db.Uuid
   branchId   String    @db.Uuid
   customerId String?   @db.Uuid
+  idempotencyKey String?
+  idempotencyHash String?
+  idempotencyFirstSeenAt DateTime?
+  idempotencyLastSeenAt DateTime?
+  idempotencyReplayCount Int @default(0)
   total      Decimal   @db.Decimal(12, 2)
   status     String
   createdAt  DateTime  @default(now())
@@ -118,9 +130,31 @@ model Sale {
   branch     Branch    @relation(fields: [branchId], references: [id])
   company    Company   @relation(fields: [companyId], references: [id])
   customer   Customer? @relation(fields: [customerId], references: [id])
+  items      SaleItem[]
 
   @@index([companyId])
   @@index([branchId])
+  @@index([createdAt])
+  @@index([companyId, status, deletedAt, createdAt])
+  @@index([companyId, branchId, status, deletedAt, createdAt])
+  @@unique([companyId, idempotencyKey])
+}
+
+model SaleItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  companyId String   @db.Uuid
+  saleId    String   @db.Uuid
+  productId String
+  quantity  Decimal  @db.Decimal(12, 2)
+  unitPrice Decimal  @db.Decimal(12, 2)
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+  company   Company  @relation(fields: [companyId], references: [id])
+  sale      Sale     @relation(fields: [saleId], references: [id])
+
+  @@index([companyId])
+  @@index([saleId])
+  @@index([productId])
   @@index([createdAt])
 }
 
@@ -158,6 +192,25 @@ model InventoryMovement {
   @@index([companyId])
   @@index([branchId])
   @@index([createdAt])
+  @@index([companyId, type, deletedAt, productId, createdAt])
+  @@index([companyId, branchId, type, deletedAt, productId, createdAt])
+}
+
+model ProductStock {
+  id        String   @id @default(uuid()) @db.Uuid
+  companyId String   @db.Uuid
+  branchId  String   @db.Uuid
+  productId String
+  quantity  Decimal  @db.Decimal(12, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  branch    Branch   @relation(fields: [branchId], references: [id])
+
+  @@unique([companyId, branchId, productId])
+  @@index([companyId])
+  @@index([branchId])
+  @@index([productId])
 }
 
 model Subscription {

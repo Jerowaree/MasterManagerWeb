@@ -1,26 +1,30 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 import { RegisterDto } from './dto/register.dto';
 import { tenantStorage } from '../../common/store/tenant.store';
+import { buildCompanyEmailDomain } from '../../common/utils/company-domain.utils';
+import { getJwtSigningSecret, getJwtVerificationSecrets } from './auth.config';
+import { SecurityEventsService } from '../security/security-events.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private securityEvents: SecurityEventsService,
   ) {}
 
   async register(dto: RegisterDto) {
     return tenantStorage.run({ isPublic: true }, async () => {
-      const { 
-        email, password, companyName, country, currency, timezone, branchName 
+      const {
+        email, password, companyName, country, currency, timezone, branchName
       } = dto;
 
-      // 1. Check if user already exists
       const existingUser = await this.prisma.client.user.findFirst({
-        where: { email },
+        where: { email, deletedAt: null },
       });
 
       if (existingUser) {
@@ -29,12 +33,11 @@ export class AuthService {
 
       const passwordHash = await bcrypt.hash(password, 12);
 
-      // 2. Atomic transaction for super-secure creation
       const result = await this.prisma.client.$transaction(async (tx: any) => {
-        // Create Company
         const company = await tx.company.create({
           data: {
             name: companyName,
+            emailDomain: buildCompanyEmailDomain(companyName),
             country,
             currency,
             timezone,
@@ -43,7 +46,6 @@ export class AuthService {
           },
         });
 
-        // Create main Branch
         const branch = await tx.branch.create({
           data: {
             name: branchName || 'Principal',
@@ -52,7 +54,6 @@ export class AuthService {
           },
         });
 
-        // Create Owner User
         const user = await tx.user.create({
           data: {
             email,
@@ -60,10 +61,10 @@ export class AuthService {
             companyId: company.id,
             branchId: branch.id,
             role: 'owner',
+            sessionVersion: 0,
           },
         });
 
-        // Create initial subscription
         await tx.subscription.create({
           data: {
             companyId: company.id,
@@ -83,34 +84,171 @@ export class AuthService {
   async validateUser(email: string, pass: string): Promise<any> {
     return tenantStorage.run({ isPublic: true }, async () => {
       const user = await this.prisma.client.user.findFirst({
-        where: { email },
+        where: { email, deletedAt: null },
       });
 
       if (user && (await bcrypt.compare(pass, user.passwordHash))) {
-        const { passwordHash, ...result } = user;
+        const { passwordHash, refreshTokenHash, ...result } = user;
         return result;
       }
+
+      await this.securityEvents.emit({
+        code: 'auth_login_failed',
+        severity: 'medium',
+        message: 'Intento de login fallido por credenciales invalidas',
+        metadata: { email },
+      });
       return null;
     });
   }
 
   async login(user: any) {
-    const payload = { 
-      email: user.email, 
-      sub: user.id, 
+    return tenantStorage.run({ isPublic: true }, async () => {
+      const tokens = await this.issueTokens(user);
+      await this.persistRefreshTokenHash(user.id, tokens.refresh_token);
+
+      return {
+        ...tokens,
+        user: {
+          id: user.id,
+          email: user.email,
+          companyId: user.companyId,
+          branchId: user.branchId,
+          role: user.role,
+        },
+      };
+    });
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+    return tenantStorage.run({ isPublic: true }, async () => {
+      const payload = await this.verifyRefreshToken(refreshToken);
+
+      const user = await this.prisma.client.user.findFirst({
+        where: { id: payload.sub, deletedAt: null },
+      });
+
+      if (!user) {
+        await this.securityEvents.emit({
+          code: 'auth_refresh_user_not_found',
+          severity: 'high',
+          message: 'Refresh token valido apunta a usuario inexistente',
+          userId: payload?.sub,
+        });
+        throw new UnauthorizedException('Sesion invalida');
+      }
+
+      if (payload.sv !== user.sessionVersion) {
+        await this.securityEvents.emit({
+          code: 'auth_refresh_session_mismatch',
+          severity: 'medium',
+          message: 'Refresh token con version de sesion antigua',
+          userId: user.id,
+          companyId: user.companyId,
+        });
+        throw new UnauthorizedException('Sesion expirada');
+      }
+
+      if (!user.refreshTokenHash) {
+        await this.securityEvents.emit({
+          code: 'auth_refresh_hash_missing',
+          severity: 'high',
+          message: 'Refresh token presentado pero hash ya no existe',
+          userId: user.id,
+          companyId: user.companyId,
+        });
+        throw new UnauthorizedException('Refresh token invalido');
+      }
+
+      const validHash = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+      if (!validHash) {
+        await this.securityEvents.emit({
+          code: 'auth_refresh_hash_mismatch',
+          severity: 'high',
+          message: 'Refresh token no coincide con hash almacenado',
+          userId: user.id,
+          companyId: user.companyId,
+        });
+        throw new UnauthorizedException('Refresh token invalido');
+      }
+
+      const tokens = await this.issueTokens(user);
+      await this.persistRefreshTokenHash(user.id, tokens.refresh_token);
+
+      return {
+        ...tokens,
+        user: {
+          id: user.id,
+          email: user.email,
+          companyId: user.companyId,
+          branchId: user.branchId,
+          role: user.role,
+        },
+      };
+    });
+  }
+
+  async logout(userId: string) {
+    await tenantStorage.run({ isPublic: true }, async () => {
+      await this.prisma.client.user.update({
+        where: { id: userId },
+        data: {
+          sessionVersion: { increment: 1 },
+          refreshTokenHash: null,
+        },
+      });
+    });
+  }
+
+  private async issueTokens(user: any) {
+    const basePayload = {
+      email: user.email,
+      sub: user.id,
       companyId: user.companyId,
       branchId: user.branchId,
-      role: user.role 
+      role: user.role,
+      sv: user.sessionVersion ?? 0,
     };
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        email: user.email,
-        companyId: user.companyId,
-        branchId: user.branchId,
-        role: user.role
+
+    const access_token = this.jwtService.sign(
+      { ...basePayload, typ: 'access' },
+      { expiresIn: '15m', secret: getJwtSigningSecret() }
+    );
+
+    const refresh_token = this.jwtService.sign(
+      { ...basePayload, typ: 'refresh', jti: randomUUID() },
+      { expiresIn: '7d', secret: getJwtSigningSecret() }
+    );
+
+    return { access_token, refresh_token };
+  }
+
+  private async persistRefreshTokenHash(userId: string, refreshToken: string) {
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 12);
+    await this.prisma.client.user.update({
+      where: { id: userId },
+      data: { refreshTokenHash },
+    });
+  }
+
+  private async verifyRefreshToken(token: string) {
+    for (const secret of getJwtVerificationSecrets()) {
+      try {
+        const payload: any = this.jwtService.verify(token, { secret });
+        if (payload.typ !== 'refresh') {
+          throw new UnauthorizedException('Tipo de token invalido');
+        }
+        return payload;
+      } catch {
+        // keep trying with previous rotated secrets
       }
-    };
+    }
+
+    await this.securityEvents.emit({
+      code: 'auth_refresh_invalid_or_expired',
+      severity: 'medium',
+      message: 'Refresh token invalido o expirado',
+    });
+    throw new UnauthorizedException('Refresh token invalido o expirado');
   }
 }

@@ -9,9 +9,7 @@ const contactFormSchema = z.object({
   fullName: z.string().min(2, "Ingresa tu nombre completo."),
   email: z.string().email("Ingresa un correo valido."),
   company: z.string().min(2, "Ingresa el nombre de tu empresa."),
-  reason: z.enum(["ventas", "soporte", "demo"], {
-    required_error: "Selecciona el motivo del contacto.",
-  }),
+  reason: z.enum(["ventas", "soporte", "demo"]),
   message: z.string().min(20, "Describe tu solicitud con al menos 20 caracteres."),
 });
 

@@ -123,8 +123,13 @@ Servicios por defecto:
 API:
 - `DATABASE_URL`
 - `JWT_SECRET`
+- `JWT_PREVIOUS_SECRETS` (opcional, CSV para rotacion sin corte)
 - `FRONTEND_URL` (URL publica del frontend)
 - `RESEND_API_KEY`
+- `PORT`
+- `BOT_PROTECTION_MODE` (`off` | `basic` | `turnstile`)
+- `TURNSTILE_SECRET_KEY` (obligatorio si `BOT_PROTECTION_MODE=turnstile`)
+- `SECURITY_ALERT_WEBHOOK_URL` (opcional para alertas high/critical)
 - `NODE_ENV=production`
 
 Web:
@@ -163,3 +168,8 @@ pnpm --filter @master-manager/api exec prisma generate --schema ../../packages/d
 4. Publicar Web apuntando a `NEXT_PUBLIC_API_URL`.
 5. Verificar CORS (`FRONTEND_URL`) y login con cookies/JWT.
 
+## Operacion de Seguridad
+
+- Runbook de incidentes: `docs/security/incident-response.md`
+- Drill de backup/restore: `docs/security/backup-drill.md`
+- CI de seguridad: `.github/workflows/security-ci.yml`

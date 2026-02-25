@@ -7,6 +7,14 @@ import helmet from 'helmet';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
+  const isProd = process.env.NODE_ENV === 'production';
+  const frontendUrl = process.env.FRONTEND_URL;
+  const port = Number(process.env.PORT ?? 3001);
+
+  if (isProd && !frontendUrl) {
+    throw new Error('FRONTEND_URL es obligatorio en produccion');
+  }
+
   const app = await NestFactory.create(AppModule);
 
   // Security
@@ -14,8 +22,10 @@ async function bootstrap() {
   app.use(cookieParser());
   
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: frontendUrl || 'http://localhost:3000',
     credentials: true,
+    methods: ['GET', 'HEAD', 'OPTIONS', 'POST', 'PATCH', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token', 'idempotency-key'],
   });
 
   // Global Validation
@@ -27,7 +37,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(3001);
+  await app.listen(port);
 }
 
 bootstrap();

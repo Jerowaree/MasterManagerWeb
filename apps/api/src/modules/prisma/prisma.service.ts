@@ -8,8 +8,10 @@ const TENANT_MODELS = [
   'Customer', 
   'Supplier', 
   'Sale', 
+  'SaleItem',
   'Purchase', 
   'InventoryMovement', 
+  'ProductStock',
   'Subscription', 
   'PaymentLog', 
   'AuditLog'

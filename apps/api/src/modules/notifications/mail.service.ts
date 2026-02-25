@@ -3,16 +3,31 @@ import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
-  private resend: Resend;
+  private resend?: Resend;
   private readonly logger = new Logger(MailService.name);
+  private readonly isEnabled: boolean;
 
   constructor() {
-    // In production, this should be in an environment variable
-    const apiKey = process.env.RESEND_API_KEY || 're_123456789';
+    const apiKey = process.env.RESEND_API_KEY;
+    const isProd = process.env.NODE_ENV === 'production';
+
+    if (!apiKey) {
+      this.isEnabled = false;
+      if (isProd) {
+        throw new Error('RESEND_API_KEY es obligatorio en produccion');
+      }
+      this.logger.warn('RESEND_API_KEY no configurado. Envio de correos deshabilitado en este entorno.');
+      return;
+    }
+
+    this.isEnabled = true;
     this.resend = new Resend(apiKey);
   }
 
   async sendMailWithAttachment(to: string, subject: string, html: string, filename: string, content: Buffer) {
+    if (!this.isEnabled || !this.resend) {
+      return { success: false, error: 'mail_disabled' };
+    }
     try {
       const { data, error } = await this.resend.emails.send({
         from: 'Master Manager <onboarding@resend.dev>',
@@ -40,6 +55,9 @@ export class MailService {
   }
 
   async sendSimpleMail(to: string, subject: string, html: string) {
+    if (!this.isEnabled || !this.resend) {
+      return { success: false, error: 'mail_disabled' };
+    }
     try {
       const { data, error } = await this.resend.emails.send({
         from: 'Master Manager <onboarding@resend.dev>',

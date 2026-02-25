@@ -74,7 +74,7 @@ export default function VentasPage() {
         ...formData,
         total: parseFloat(formData.total),
         customerId: formData.customerId || null
-      });
+      }, `sale-${Date.now()}-${crypto.randomUUID()}`);
 
       if (response.success) {
         showToast('Venta registrada con éxito', 'success');

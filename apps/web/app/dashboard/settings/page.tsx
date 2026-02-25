@@ -1,16 +1,55 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { User, Shield, Building, Mail, MapPin, CreditCard, Lock, Save, Loader2 } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { User, Shield, Building, Mail, Lock, Save, Loader2, Users } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/auth-context';
+import { CompanySettingsForm } from '@/components/settings/CompanySettingsForm';
+import { CreateWorkerForm } from '@/components/settings/CreateWorkerForm';
+import { CompanySettingsFormValues, CreateWorkerFormValues } from '@/components/settings/settings-validators';
+import { PasswordStrengthHint } from '@/components/forms/PasswordStrengthHint';
+import { evaluatePassword } from '@/lib/password-policy';
+
+type ProfileData = {
+  id: string;
+  email: string;
+  role: string;
+  company: {
+    id: string;
+    name: string;
+    emailDomain: string;
+    country: string;
+    currency: string;
+    timezone: string;
+    plan: string;
+  };
+};
+
+type CompanyUser = {
+  id: string;
+  email: string;
+  role: string;
+  createdAt: string;
+};
 
 export default function SettingsPage() {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingCompany, setSavingCompany] = useState(false);
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
+  const [companyFormValues, setCompanyFormValues] = useState<CompanySettingsFormValues>({
+    name: '',
+    emailDomain: '',
+    country: '',
+    currency: '',
+    timezone: '',
+  });
   const { showToast } = useToast();
+  const { user, login, token } = useAuth();
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -18,26 +57,69 @@ export default function SettingsPage() {
     confirmPassword: ''
   });
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const response = await api.users.getProfile();
-        if (response.success) {
-          setProfile(response.data);
-        }
-      } catch (err: any) {
-        showToast(err.message || 'Error al cargar perfil', 'error');
-      } finally {
-        setLoading(false);
+  const canManageCompany = useMemo(() => {
+    return ['owner', 'admin', 'superadmin'].includes(user?.role ?? profile?.role ?? '');
+  }, [user?.role, profile?.role]);
+
+  const loadProfile = useCallback(async () => {
+    try {
+      const response = await api.users.getProfile();
+      if (response.success) {
+        const loadedProfile = response.data as ProfileData;
+        setProfile(loadedProfile);
+        setCompanyFormValues({
+          name: loadedProfile.company.name,
+          emailDomain: loadedProfile.company.emailDomain,
+          country: loadedProfile.company.country,
+          currency: loadedProfile.company.currency,
+          timezone: loadedProfile.company.timezone,
+        });
       }
-    };
-    loadProfile();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al cargar perfil';
+      showToast(message, 'error');
+    }
   }, [showToast]);
+
+  const loadCompanyUsers = useCallback(async () => {
+    if (!canManageCompany) return;
+
+    try {
+      const response = await api.users.listCompanyUsers();
+      if (response.success) {
+        setCompanyUsers(response.data as CompanyUser[]);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al cargar usuarios';
+      showToast(message, 'error');
+    }
+  }, [canManageCompany, showToast]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await loadProfile();
+      setLoading(false);
+    };
+
+    loadData();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    if (canManageCompany) {
+      loadCompanyUsers();
+    }
+  }, [canManageCompany, loadCompanyUsers]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
+    const strength = evaluatePassword(passwordData.newPassword);
+    if (strength.score < 5) {
+      showToast('La nueva contrasena no cumple la politica de seguridad', 'error');
+      return;
+    }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showToast('Las contraseñas no coinciden', 'error');
+      showToast('Las contrasenas no coinciden', 'error');
       return;
     }
 
@@ -48,13 +130,71 @@ export default function SettingsPage() {
         newPassword: passwordData.newPassword
       });
       if (response.success) {
-        showToast('Contraseña actualizada con éxito', 'success');
+        showToast('Contrasena actualizada con exito', 'success');
         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       }
-    } catch (err: any) {
-      showToast(err.message || 'Error al actualizar contraseña', 'error');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al actualizar contrasena';
+      showToast(message, 'error');
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleCompanyUpdate = async (values: CompanySettingsFormValues) => {
+    if (!canManageCompany) {
+      showToast('No tienes permisos para modificar la empresa', 'error');
+      return;
+    }
+
+    setSavingCompany(true);
+    try {
+      const response = await api.companies.updateCurrent(values);
+      if (response.success) {
+        showToast('Empresa actualizada correctamente. Si cambiaste el dominio, vuelve a iniciar sesion.', 'success');
+        await loadProfile();
+        await loadCompanyUsers();
+
+        if (profile && token) {
+          const profileResponse = await api.users.getProfile();
+          if (profileResponse.success) {
+            const refreshedProfile = profileResponse.data as ProfileData;
+            login(token, {
+              id: refreshedProfile.id,
+              email: refreshedProfile.email,
+              companyId: refreshedProfile.company.id,
+              branchId: user?.branchId,
+              role: refreshedProfile.role,
+            });
+          }
+        }
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al actualizar empresa';
+      showToast(message, 'error');
+    } finally {
+      setSavingCompany(false);
+    }
+  };
+
+  const handleCreateUser = async (values: CreateWorkerFormValues) => {
+    if (!canManageCompany) {
+      showToast('No tienes permisos para crear usuarios', 'error');
+      return;
+    }
+
+    setCreatingUser(true);
+    try {
+      const response = await api.users.createCompanyUser(values);
+      if (response.success) {
+        showToast('Usuario creado correctamente', 'success');
+        await loadCompanyUsers();
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al crear usuario';
+      showToast(message, 'error');
+    } finally {
+      setCreatingUser(false);
     }
   };
 
@@ -67,14 +207,13 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10">
+    <div className="max-w-5xl mx-auto space-y-10">
       <div>
-        <h1 className="text-3xl font-bold text-black font-heading">Configuración</h1>
-        <p className="text-gray-500">Gestiona tu información personal y la seguridad de tu cuenta.</p>
+        <h1 className="text-3xl font-bold text-black font-heading">Configuracion</h1>
+        <p className="text-gray-500">Gestiona la seguridad, tu empresa y los usuarios del tenant.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-        {/* Sidebar Nav */}
         <div className="space-y-2">
           <nav className="flex flex-col gap-1">
             <button className="flex items-center gap-3 px-4 py-3 bg-purple-50 text-[#7c3aed] rounded-xl font-bold text-sm text-left">
@@ -82,20 +221,18 @@ export default function SettingsPage() {
               Perfil del Usuario
             </button>
             <button className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium text-sm text-left transition-colors">
-              <Shield className="w-4 h-4" />
-              Seguridad
+              <Building className="w-4 h-4" />
+              Empresa y Dominio
             </button>
             <button className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium text-sm text-left transition-colors">
-              <Building className="w-4 h-4" />
-              Datos de Empresa
+              <Users className="w-4 h-4" />
+              Usuarios del Tenant
             </button>
           </nav>
         </div>
 
-        {/* Form Content */}
         <div className="md:col-span-2 space-y-8">
-          {/* User Data Section */}
-          <motion.section 
+          <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6"
@@ -105,8 +242,8 @@ export default function SettingsPage() {
                 <User className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-black">Información Personal</h3>
-                <p className="text-xs text-gray-400 font-medium">Tus datos básicos de acceso</p>
+                <h3 className="font-bold text-black">Informacion Personal</h3>
+                <p className="text-xs text-gray-400 font-medium">Tus datos basicos de acceso</p>
               </div>
             </div>
 
@@ -128,8 +265,7 @@ export default function SettingsPage() {
             </div>
           </motion.section>
 
-          {/* Company Data Section */}
-          <motion.section 
+          <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -141,43 +277,58 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-black">Datos de la Empresa</h3>
-                <p className="text-xs text-gray-400 font-medium">Configuración global de tu negocio</p>
+                <p className="text-xs text-gray-400 font-medium">Actualizar nombre y dominio de correos del tenant</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nombre Comercial</label>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-transparent">
-                  <Building className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-bold text-black">{profile?.company?.name}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400">País</label>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-transparent">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-bold text-black">{profile?.company?.country}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400">Moneda</label>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-transparent">
-                  <CreditCard className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-bold text-black uppercase">{profile?.company?.currency}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400">Plan Actual</label>
-                <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl border border-purple-100">
-                  <span className="text-sm font-bold text-[#7c3aed] uppercase tracking-wider">{profile?.company?.plan}</span>
-                </div>
-              </div>
-            </div>
+            <CompanySettingsForm
+              initialValues={companyFormValues}
+              disabled={!canManageCompany}
+              loading={savingCompany}
+              onSubmit={handleCompanyUpdate}
+              planLabel={profile?.company?.plan ?? ''}
+            />
           </motion.section>
 
-          {/* Change Password Section */}
-          <motion.section 
+          {canManageCompany && (
+            <motion.section
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6"
+            >
+              <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
+                <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-[#7c3aed]">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-black">Usuarios del Tenant</h3>
+                  <p className="text-xs text-gray-400 font-medium">
+                    Se crean con el dominio @{profile?.company?.emailDomain}
+                  </p>
+                </div>
+              </div>
+
+              <CreateWorkerForm loading={creatingUser} onSubmit={handleCreateUser} />
+
+              <div className="space-y-2">
+                {companyUsers.map((companyUser) => (
+                  <div key={companyUser.id} className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3">
+                    <div>
+                      <p className="text-sm font-bold text-black">{companyUser.email}</p>
+                      <p className="text-xs text-gray-500">{new Date(companyUser.createdAt).toLocaleString()}</p>
+                    </div>
+                    <span className="text-xs uppercase tracking-widest font-bold text-[#7c3aed]">{companyUser.role}</span>
+                  </div>
+                ))}
+                {companyUsers.length === 0 && (
+                  <p className="text-sm text-gray-500">No hay usuarios registrados para este tenant.</p>
+                )}
+              </div>
+            </motion.section>
+          )}
+
+          <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -189,43 +340,44 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-black">Seguridad de Cuenta</h3>
-                <p className="text-xs text-gray-400 font-medium">Actualiza tu contraseña de acceso</p>
+                <p className="text-xs text-gray-400 font-medium">Actualiza tu contrasena de acceso</p>
               </div>
             </div>
 
             <form onSubmit={handlePasswordChange} className="space-y-6">
               <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">Contraseña Actual</label>
-                  <input 
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">Contrasena Actual</label>
+                  <input
                     type="password"
                     required
                     value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                    placeholder="••••••••"
+                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                    placeholder="********"
                     className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nueva Contraseña</label>
-                    <input 
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nueva Contrasena</label>
+                    <input
                       type="password"
                       required
                       value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                      placeholder="Min. 6 caracteres"
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      placeholder="Min. 8 caracteres"
                       className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
                     />
+                    <PasswordStrengthHint password={passwordData.newPassword} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Confirmar Nueva Contraseña</label>
-                    <input 
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Confirmar Contrasena</label>
+                    <input
                       type="password"
                       required
                       value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                      placeholder="••••••••"
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      placeholder="********"
                       className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
                     />
                   </div>
@@ -233,13 +385,13 @@ export default function SettingsPage() {
               </div>
 
               <div className="pt-4 border-t border-gray-50 flex justify-end">
-                <button 
+                <button
                   type="submit"
                   disabled={savingPassword}
                   className="flex items-center gap-2 px-8 py-3 bg-black text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-xl shadow-black/10 disabled:opacity-50"
                 >
                   {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Actualizar Contraseña
+                  Actualizar Contrasena
                 </button>
               </div>
             </form>

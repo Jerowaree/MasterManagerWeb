@@ -1,11 +1,16 @@
-import { IsEmail, IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
+﻿import { IsEmail, IsString, IsNotEmpty, MinLength, IsOptional, Matches, IsNumber } from 'class-validator';
+import { PASSWORD_MIN_LENGTH, PASSWORD_POLICY } from '../../../common/utils/password-policy.utils';
 
 export class RegisterDto {
   @IsEmail()
   email!: string;
 
   @IsString()
-  @MinLength(8)
+  @MinLength(PASSWORD_MIN_LENGTH, { message: 'La contrasena debe tener al menos 8 caracteres' })
+  @Matches(PASSWORD_POLICY.uppercase, { message: 'La contrasena debe incluir una mayuscula' })
+  @Matches(PASSWORD_POLICY.lowercase, { message: 'La contrasena debe incluir una minuscula' })
+  @Matches(PASSWORD_POLICY.number, { message: 'La contrasena debe incluir un numero' })
+  @Matches(PASSWORD_POLICY.symbol, { message: 'La contrasena debe incluir un simbolo' })
   password!: string;
 
   @IsString()
@@ -27,4 +32,16 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   branchName?: string;
+
+  @IsOptional()
+  @IsString()
+  captchaToken?: string;
+
+  @IsOptional()
+  @IsString()
+  website?: string;
+
+  @IsOptional()
+  @IsNumber()
+  submissionStartedAt?: number;
 }
