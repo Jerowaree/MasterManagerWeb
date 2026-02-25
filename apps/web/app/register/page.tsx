@@ -250,26 +250,17 @@ export default function RegisterPage() {
                     <div className="relative group">
                       <Lock className={cn(
                         "absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors",
-                        errors.password ? "text-red-500" : "text-gray-400 group-focus-within:text-purple-600"
+                        "text-gray-400 group-focus-within:text-purple-600"
                       )} />
                       <input 
                         {...register('password')}
                         type="password"
                         autoComplete="new-password"
-                        className={cn(
-                          "w-full pl-12 pr-4 py-4 bg-white border rounded-2xl outline-none transition-all",
-                          errors.password
-                            ? "border-red-500 focus:ring-red-500/10"
-                            : "border-gray-200 focus:ring-purple-600/10 focus:border-purple-600"
-                        )}
+                        className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl outline-none transition-all focus:ring-purple-600/10 focus:border-purple-600"
                         placeholder="••••••••••••"
                       />
                     </div>
-                    {errors.password ? (
-                      <p className="text-xs text-red-500 pl-1">{errors.password.message}</p>
-                    ) : (
-                      <PasswordStrengthHint password={passwordValue} className="pl-1" />
-                    )}
+                    <PasswordStrengthHint password={passwordValue} className="pl-1" />
                   </div>
                 </motion.div>
               )}

@@ -3,9 +3,11 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { Prisma } from '@prisma/client';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateCompanyUserDto } from './dto/create-company-user.dto';
 import {
@@ -51,7 +53,7 @@ export class UsersService {
     });
   }
 
-  async createCompanyUser(companyId: string, dto: CreateCompanyUserDto) {
+  async createCompanyUser(companyId: string, actorUserId: string, dto: CreateCompanyUserDto) {
     const company = await this.prisma.client.company.findFirst({
       where: { id: companyId, deletedAt: null },
       select: { id: true, name: true, emailDomain: true },
@@ -103,22 +105,68 @@ export class UsersService {
     const passwordHash = await bcrypt.hash(dto.password, 12);
     const role = dto.role ?? 'employee';
 
-    const created = await this.prisma.client.user.create({
-      data: {
-        email,
-        passwordHash,
-        companyId,
-        branchId: dto.branchId,
-        role,
-      },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        branchId: true,
-        createdAt: true,
-      },
-    });
+    if (role === 'admin') {
+      if (!dto.confirmAction) {
+        throw new BadRequestException(
+          'Debes confirmar explicitamente la accion para crear un usuario admin.'
+        );
+      }
+      if (!dto.currentPassword) {
+        throw new BadRequestException(
+          'Debes ingresar tu contrasena actual para crear un usuario admin.'
+        );
+      }
+
+      const actor = await this.prisma.client.user.findFirst({
+        where: { id: actorUserId, companyId, deletedAt: null },
+        select: { id: true, passwordHash: true, role: true },
+      });
+      if (!actor) {
+        throw new UnauthorizedException('Usuario autenticado no valido para esta accion');
+      }
+      if (!['owner', 'superadmin'].includes(actor.role)) {
+        throw new UnauthorizedException('Solo owner o superadmin pueden crear usuarios admin');
+      }
+
+      const validPassword = await bcrypt.compare(dto.currentPassword, actor.passwordHash);
+      if (!validPassword) {
+        throw new UnauthorizedException('Contrasena actual incorrecta para confirmar esta accion');
+      }
+    }
+
+    let created: {
+      id: string;
+      email: string;
+      role: string;
+      branchId: string | null;
+      createdAt: Date;
+    };
+    try {
+      created = await this.prisma.client.user.create({
+        data: {
+          email,
+          passwordHash,
+          companyId,
+          branchId: dto.branchId,
+          role,
+        },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          branchId: true,
+          createdAt: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const suggestion = await this.suggestNextAvailableEmail(localPart, expectedDomain);
+        throw new ConflictException(
+          `No se pudo crear el usuario porque el correo ya esta en uso. Registra un nombre alternativo, por ejemplo ${suggestion}.`
+        );
+      }
+      throw error;
+    }
 
     return {
       ...created,

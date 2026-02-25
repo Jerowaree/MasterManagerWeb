@@ -11,6 +11,9 @@ import { SecurityEventsService } from '../security/security-events.service';
 
 @Injectable()
 export class AuthService {
+  private readonly maxLoginAttempts = Number(process.env.AUTH_MAX_LOGIN_ATTEMPTS ?? '5');
+  private readonly lockoutMinutes = Number(process.env.AUTH_LOCKOUT_MINUTES ?? '15');
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -87,9 +90,43 @@ export class AuthService {
         where: { email, deletedAt: null },
       });
 
+      if (user?.lockedUntil && user.lockedUntil > new Date()) {
+        await this.securityEvents.emit({
+          code: 'auth_login_locked_account',
+          severity: 'high',
+          message: 'Intento de login en cuenta temporalmente bloqueada',
+          userId: user.id,
+          companyId: user.companyId,
+          metadata: { email, lockedUntil: user.lockedUntil.toISOString() },
+        });
+        throw new UnauthorizedException(
+          `Cuenta bloqueada temporalmente. Intenta de nuevo despues de ${this.lockoutMinutes} minutos.`
+        );
+      }
+
       if (user && (await bcrypt.compare(pass, user.passwordHash))) {
+        if ((user.failedLoginAttempts ?? 0) > 0 || user.lockedUntil) {
+          await this.prisma.client.user.update({
+            where: { id: user.id },
+            data: { failedLoginAttempts: 0, lockedUntil: null },
+          });
+        }
         const { passwordHash, refreshTokenHash, ...result } = user;
         return result;
+      }
+
+      if (user) {
+        const nextAttempts = (user.failedLoginAttempts ?? 0) + 1;
+        const shouldLock = nextAttempts >= this.maxLoginAttempts;
+        await this.prisma.client.user.update({
+          where: { id: user.id },
+          data: {
+            failedLoginAttempts: nextAttempts,
+            lockedUntil: shouldLock
+              ? new Date(Date.now() + this.lockoutMinutes * 60 * 1000)
+              : null,
+          },
+        });
       }
 
       await this.securityEvents.emit({

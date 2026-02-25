@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength, MinLength, Matches } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateCompanySettingsDto {
   @IsOptional()
@@ -6,14 +6,6 @@ export class UpdateCompanySettingsDto {
   @MinLength(2)
   @MaxLength(120)
   name?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(120)
-  @Matches(/^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/, {
-    message: 'emailDomain debe ser un dominio valido, por ejemplo pepito.com',
-  })
-  emailDomain?: string;
 
   @IsOptional()
   @IsString()
@@ -29,4 +21,13 @@ export class UpdateCompanySettingsDto {
   @IsString()
   @MaxLength(80)
   timezone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  currentPassword?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  confirmAction?: boolean;
 }

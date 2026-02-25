@@ -130,6 +130,9 @@ API:
 - `BOT_PROTECTION_MODE` (`off` | `basic` | `turnstile`)
 - `TURNSTILE_SECRET_KEY` (obligatorio si `BOT_PROTECTION_MODE=turnstile`)
 - `SECURITY_ALERT_WEBHOOK_URL` (opcional para alertas high/critical)
+- `CORS_ALLOWED_ORIGINS` (opcional, CSV de origenes permitidos)
+- `TRUST_PROXY` (`true` si estas detras de proxy/LB)
+- `COOKIE_DOMAIN` (opcional, dominio compartido de cookies)
 - `NODE_ENV=production`
 
 Web:
@@ -173,3 +176,12 @@ pnpm --filter @master-manager/api exec prisma generate --schema ../../packages/d
 - Runbook de incidentes: `docs/security/incident-response.md`
 - Drill de backup/restore: `docs/security/backup-drill.md`
 - CI de seguridad: `.github/workflows/security-ci.yml`
+
+## Baseline de Seguridad (Produccion Basica)
+
+- Cookies `httpOnly`, `secure` (en produccion), `sameSite=lax`.
+- CSRF obligatorio en operaciones mutables con sesion por cookie.
+- JWT corto (access 15m) + refresh rotatorio + invalidacion por `sessionVersion`.
+- Lockout de login por intentos fallidos (`AUTH_MAX_LOGIN_ATTEMPTS`, `AUTH_LOCKOUT_MINUTES`).
+- Rate limiting global + throttling reforzado en endpoints de auth.
+- Audit logs con redaccion de campos sensibles.

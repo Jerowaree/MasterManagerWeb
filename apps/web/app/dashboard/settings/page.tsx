@@ -11,6 +11,7 @@ import { CreateWorkerForm } from '@/components/settings/CreateWorkerForm';
 import { CompanySettingsFormValues, CreateWorkerFormValues } from '@/components/settings/settings-validators';
 import { PasswordStrengthHint } from '@/components/forms/PasswordStrengthHint';
 import { evaluatePassword } from '@/lib/password-policy';
+import { CriticalActionModal } from '@/components/settings/CriticalActionModal';
 
 type ProfileData = {
   id: string;
@@ -34,12 +35,18 @@ type CompanyUser = {
   createdAt: string;
 };
 
+type PendingAction =
+  | { type: 'domain-change'; values: CompanySettingsFormValues }
+  | { type: 'create-admin'; values: CreateWorkerFormValues };
+
 export default function SettingsPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingCompany, setSavingCompany] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
+  const [isCriticalModalOpen, setIsCriticalModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
   const [companyFormValues, setCompanyFormValues] = useState<CompanySettingsFormValues>({
     name: '',
@@ -59,6 +66,9 @@ export default function SettingsPage() {
 
   const canManageCompany = useMemo(() => {
     return ['owner', 'admin', 'superadmin'].includes(user?.role ?? profile?.role ?? '');
+  }, [user?.role, profile?.role]);
+  const canRunCriticalActions = useMemo(() => {
+    return ['owner', 'superadmin'].includes(user?.role ?? profile?.role ?? '');
   }, [user?.role, profile?.role]);
 
   const loadProfile = useCallback(async () => {
@@ -147,9 +157,33 @@ export default function SettingsPage() {
       return;
     }
 
+    const currentDomain = profile?.company?.emailDomain?.trim().toLowerCase() ?? '';
+    const incomingDomain = values.emailDomain.trim().toLowerCase();
+    const needsCriticalConfirmation = currentDomain !== incomingDomain;
+
+    if (needsCriticalConfirmation) {
+      if (!canRunCriticalActions) {
+        showToast('Solo owner o superadmin pueden cambiar el dominio', 'error');
+        return;
+      }
+      setPendingAction({ type: 'domain-change', values });
+      setIsCriticalModalOpen(true);
+      return;
+    }
+
+    await executeCompanyUpdate(values);
+  };
+
+  const executeCompanyUpdate = async (
+    values: CompanySettingsFormValues,
+    criticalConfirmation?: { confirmAction: true; currentPassword: string }
+  ) => {
     setSavingCompany(true);
     try {
-      const response = await api.companies.updateCurrent(values);
+      const response = await api.companies.updateCurrent({
+        ...values,
+        ...criticalConfirmation,
+      });
       if (response.success) {
         showToast('Empresa actualizada correctamente. Si cambiaste el dominio, vuelve a iniciar sesion.', 'success');
         await loadProfile();
@@ -168,10 +202,13 @@ export default function SettingsPage() {
             });
           }
         }
+        return true;
       }
+      return false;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al actualizar empresa';
       showToast(message, 'error');
+      return false;
     } finally {
       setSavingCompany(false);
     }
@@ -180,23 +217,96 @@ export default function SettingsPage() {
   const handleCreateUser = async (values: CreateWorkerFormValues) => {
     if (!canManageCompany) {
       showToast('No tienes permisos para crear usuarios', 'error');
-      return;
+      return false;
     }
 
+    if (values.role === 'admin') {
+      if (!canRunCriticalActions) {
+        showToast('Solo owner o superadmin pueden crear usuarios admin', 'error');
+        return false;
+      }
+      setPendingAction({ type: 'create-admin', values });
+      setIsCriticalModalOpen(true);
+      return false;
+    }
+
+    return executeCreateUser(values);
+  };
+
+  const executeCreateUser = async (
+    values: CreateWorkerFormValues,
+    criticalConfirmation?: { confirmAction: true; currentPassword: string }
+  ) => {
     setCreatingUser(true);
     try {
-      const response = await api.users.createCompanyUser(values);
+      const response = await api.users.createCompanyUser({
+        ...values,
+        ...criticalConfirmation,
+      });
       if (response.success) {
         showToast('Usuario creado correctamente', 'success');
         await loadCompanyUsers();
+        return true;
       }
+      return false;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al crear usuario';
       showToast(message, 'error');
+      return false;
     } finally {
       setCreatingUser(false);
     }
   };
+
+  const handleCloseCriticalModal = () => {
+    if (savingCompany || creatingUser) return;
+    setIsCriticalModalOpen(false);
+    setPendingAction(null);
+  };
+
+  const handleConfirmCriticalAction = async (currentPassword: string) => {
+    if (!pendingAction) return;
+
+    const criticalConfirmation = {
+      confirmAction: true as const,
+      currentPassword,
+    };
+
+    if (pendingAction.type === 'domain-change') {
+      const success = await executeCompanyUpdate(pendingAction.values, criticalConfirmation);
+      if (success) {
+        setIsCriticalModalOpen(false);
+        setPendingAction(null);
+      }
+      return;
+    }
+
+    const success = await executeCreateUser(pendingAction.values, criticalConfirmation);
+    if (success) {
+      setIsCriticalModalOpen(false);
+      setPendingAction(null);
+    }
+  };
+
+  const criticalActionContent = useMemo(() => {
+    if (!pendingAction) return null;
+
+    if (pendingAction.type === 'domain-change') {
+      return {
+        title: 'Confirmar cambio de dominio',
+        description:
+          'Cambiar el dominio afectara los correos permitidos para todos los usuarios del tenant. Confirma con tu contrasena actual.',
+        actionLabel: 'Confirmar cambio',
+      };
+    }
+
+    return {
+      title: 'Confirmar creacion de admin',
+      description:
+        'Estas por crear un usuario con permisos administrativos. Confirma con tu contrasena actual para continuar.',
+      actionLabel: 'Crear admin',
+    };
+  }, [pendingAction]);
 
   if (loading) {
     return (
@@ -284,6 +394,7 @@ export default function SettingsPage() {
             <CompanySettingsForm
               initialValues={companyFormValues}
               disabled={!canManageCompany}
+              canEditEmailDomain={canRunCriticalActions}
               loading={savingCompany}
               onSubmit={handleCompanyUpdate}
               planLabel={profile?.company?.plan ?? ''}
@@ -309,7 +420,11 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <CreateWorkerForm loading={creatingUser} onSubmit={handleCreateUser} />
+              <CreateWorkerForm
+                loading={creatingUser}
+                canAssignAdmin={canRunCriticalActions}
+                onSubmit={handleCreateUser}
+              />
 
               <div className="space-y-2">
                 {companyUsers.map((companyUser) => (
@@ -398,6 +513,18 @@ export default function SettingsPage() {
           </motion.section>
         </div>
       </div>
+
+      {criticalActionContent && (
+        <CriticalActionModal
+          isOpen={isCriticalModalOpen}
+          loading={savingCompany || creatingUser}
+          title={criticalActionContent.title}
+          description={criticalActionContent.description}
+          actionLabel={criticalActionContent.actionLabel}
+          onClose={handleCloseCriticalModal}
+          onConfirm={handleConfirmCriticalAction}
+        />
+      )}
     </div>
   );
 }

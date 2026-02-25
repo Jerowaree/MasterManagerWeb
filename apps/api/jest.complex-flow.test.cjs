@@ -178,9 +178,56 @@ describe('Complex functional flow (Jest in-process)', () => {
     expect(out.res.status).toBe(201);
     const workerId = out.data?.data?.id;
 
+    out = await req(base, '/users/company-users', {
+      method: 'POST',
+      body: { username: `admin${id}`, password: 'AdminPass123!', role: 'admin', branchId },
+    }, jar);
+    expect(out.res.status).toBe(400);
+
+    out = await req(base, '/users/company-users', {
+      method: 'POST',
+      body: {
+        username: `admin${id}`,
+        password: 'AdminPass123!',
+        role: 'admin',
+        branchId,
+        confirmAction: true,
+        currentPassword: 'OwnerPass123!',
+      },
+    }, jar);
+    expect(out.res.status).toBe(201);
+
+    const adminJar = {};
+    out = await req(base, '/auth/login', {
+      method: 'POST',
+      body: {
+        email: `admin${id}@pepitosecure${id}.com`,
+        password: 'AdminPass123!',
+      },
+    }, adminJar);
+    expect(out.res.status).toBe(200);
+
+    out = await req(base, '/users/company-users', {
+      method: 'POST',
+      body: {
+        username: `adminx${id}`,
+        password: 'AdminPass123!',
+        role: 'admin',
+        branchId,
+        confirmAction: true,
+        currentPassword: 'AdminPass123!',
+      },
+    }, adminJar);
+    expect(out.res.status).toBe(401);
+
     out = await req(base, '/companies/me', {
       method: 'PATCH',
-      body: { name: `PepitoNuevo${id}`, emailDomain: `pepitonuevo${id}.com` },
+      body: {
+        name: `PepitoNuevo${id}`,
+        emailDomain: `pepitonuevo${id}.com`,
+        confirmAction: true,
+        currentPassword: 'OwnerPass123!',
+      },
     }, jar);
     expect(out.res.status).toBe(200);
 

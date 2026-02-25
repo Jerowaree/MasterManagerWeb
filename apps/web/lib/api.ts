@@ -71,7 +71,14 @@ export const api = {
   users: {
     getProfile: () => fetchWithAuth('/users/profile'),
     listCompanyUsers: () => fetchWithAuth('/users/company-users'),
-    createCompanyUser: (data: { username: string; password: string; role?: 'admin' | 'employee'; branchId?: string }) =>
+    createCompanyUser: (data: {
+      username: string;
+      password: string;
+      role?: 'admin' | 'employee';
+      branchId?: string;
+      confirmAction?: boolean;
+      currentPassword?: string;
+    }) =>
       fetchWithAuth('/users/company-users', { method: 'POST', body: JSON.stringify(data) }),
     changePassword: (data: unknown) => fetchWithAuth('/users/change-password', { method: 'POST', body: JSON.stringify(data) }),
   },
@@ -83,6 +90,8 @@ export const api = {
       country?: string;
       currency?: string;
       timezone?: string;
+      confirmAction?: boolean;
+      currentPassword?: string;
     }) => fetchWithAuth('/companies/me', { method: 'PATCH', body: JSON.stringify(data) }),
   }
 };

@@ -61,6 +61,8 @@ model User {
   role         UserRole
   email        String
   passwordHash String
+  failedLoginAttempts Int      @default(0)
+  lockedUntil DateTime?
   sessionVersion Int      @default(0)
   refreshTokenHash String?
   createdAt    DateTime   @default(now())

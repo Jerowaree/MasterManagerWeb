@@ -26,7 +26,7 @@ export class UsersController {
   @Post('company-users')
   @Roles('owner', 'admin', 'superadmin')
   createCompanyUser(@Request() req: any, @Body() dto: CreateCompanyUserDto) {
-    return this.usersService.createCompanyUser(req.user.companyId, dto);
+    return this.usersService.createCompanyUser(req.user.companyId, req.user.id, dto);
   }
 
   @Post('change-password')

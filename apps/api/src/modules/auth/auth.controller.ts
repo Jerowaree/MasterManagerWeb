@@ -17,6 +17,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { randomBytes } from 'crypto';
 import { Throttle } from '@nestjs/throttler';
 import { BotProtectionService } from '../security/bot-protection.service';
+import { CookieOptions } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -25,37 +26,43 @@ export class AuthController {
     private readonly botProtection: BotProtectionService
   ) {}
 
-  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+  private buildCookieOptions(overrides?: CookieOptions): CookieOptions {
     const secure = process.env.NODE_ENV === 'production';
+    const cookieDomain = process.env.COOKIE_DOMAIN?.trim() || undefined;
+    return {
+      secure,
+      sameSite: 'lax',
+      ...(cookieDomain ? { domain: cookieDomain } : {}),
+      ...overrides,
+    };
+  }
+
+  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
     const csrfToken = randomBytes(24).toString('hex');
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure,
-      sameSite: 'lax',
+      ...this.buildCookieOptions(),
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure,
-      sameSite: 'lax',
+      ...this.buildCookieOptions({ path: '/auth/refresh' }),
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/auth/refresh',
     });
 
     res.cookie('csrf_token', csrfToken, {
       httpOnly: false,
-      secure,
-      sameSite: 'lax',
+      ...this.buildCookieOptions(),
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 
   private clearAuthCookies(res: Response) {
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token', { path: '/auth/refresh' });
-    res.clearCookie('csrf_token');
+    res.clearCookie('access_token', this.buildCookieOptions());
+    res.clearCookie('refresh_token', this.buildCookieOptions({ path: '/auth/refresh' }));
+    res.clearCookie('csrf_token', this.buildCookieOptions());
   }
 
   @Post('register')

@@ -1,4 +1,4 @@
-﻿CREATE INDEX "Sale_companyId_status_deletedAt_createdAt_idx"
+CREATE INDEX "Sale_companyId_status_deletedAt_createdAt_idx"
 ON "Sale"("companyId", "status", "deletedAt", "createdAt");
 
 CREATE INDEX "Sale_companyId_branchId_status_deletedAt_createdAt_idx"

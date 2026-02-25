@@ -20,7 +20,7 @@ export const createWorkerSchema = z.object({
     .string()
     .min(2, 'El usuario debe tener al menos 2 caracteres')
     .max(50, 'El usuario es demasiado largo')
-    .regex(/^[a-zA-Z0-9._-]+$/, 'Solo se permiten letras, numeros, punto, guion y guion bajo'),
+    .regex(/^[a-zA-Z0-9]+$/, 'Solo se permiten letras y numeros'),
   password: z
     .string()
     .min(8, 'La contrasena debe tener minimo 8 caracteres')

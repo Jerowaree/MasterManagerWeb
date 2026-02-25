@@ -8,10 +8,11 @@ import { PasswordStrengthHint } from '@/components/forms/PasswordStrengthHint';
 
 type Props = {
   loading?: boolean;
-  onSubmit: (values: CreateWorkerFormValues) => Promise<void> | void;
+  canAssignAdmin?: boolean;
+  onSubmit: (values: CreateWorkerFormValues) => Promise<boolean | void> | boolean | void;
 };
 
-export function CreateWorkerForm({ loading, onSubmit }: Props) {
+export function CreateWorkerForm({ loading, canAssignAdmin = false, onSubmit }: Props) {
   const {
     register,
     handleSubmit,
@@ -28,8 +29,10 @@ export function CreateWorkerForm({ loading, onSubmit }: Props) {
   });
 
   const submit = async (values: CreateWorkerFormValues) => {
-    await onSubmit(values);
-    reset({ username: '', password: '', role: 'employee' });
+    const shouldReset = await onSubmit(values);
+    if (shouldReset === true) {
+      reset({ username: '', password: '', role: 'employee' });
+    }
   };
   const password = watch('password', '');
 
@@ -51,7 +54,7 @@ export function CreateWorkerForm({ loading, onSubmit }: Props) {
           className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 outline-none"
         >
           <option value="employee">Worker</option>
-          <option value="admin">Admin</option>
+          {canAssignAdmin && <option value="admin">Admin</option>}
         </select>
         {errors.role && <p className="text-xs text-red-500 mt-1">{errors.role.message}</p>}
       </div>

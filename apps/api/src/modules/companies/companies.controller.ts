@@ -19,6 +19,6 @@ export class CompaniesController {
   @Patch('me')
   @Roles('owner', 'admin', 'superadmin')
   updateMe(@Req() req: any, @Body() dto: UpdateCompanySettingsDto) {
-    return this.companiesService.updateCurrentCompany(req.user.companyId, dto);
+    return this.companiesService.updateCurrentCompany(req.user.companyId, req.user.id, dto);
   }
 }

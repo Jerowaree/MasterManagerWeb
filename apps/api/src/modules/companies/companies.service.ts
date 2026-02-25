@@ -3,9 +3,11 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateCompanySettingsDto } from './dto/update-company-settings.dto';
+import * as bcrypt from 'bcrypt';
 import {
   getEmailLocalPart,
   isValidDomainSyntax,
@@ -30,7 +32,7 @@ export class CompaniesService {
     return company;
   }
 
-  async updateCurrentCompany(companyId: string, dto: UpdateCompanySettingsDto) {
+  async updateCurrentCompany(companyId: string, actorUserId: string, dto: UpdateCompanySettingsDto) {
     const company = await this.prisma.client.company.findFirst({
       where: { id: companyId, deletedAt: null },
       include: {
@@ -46,23 +48,45 @@ export class CompaniesService {
     }
 
     const nextName = dto.name?.trim() || company.name;
-    const nextDomain = normalizeEmailDomain(
-      dto.emailDomain,
-      dto.name?.trim() || company.name
-    );
+    const nextDomain = normalizeEmailDomain(undefined, nextName);
 
     if (!isValidDomainSyntax(nextDomain)) {
       throw new BadRequestException('El dominio no es valido. Ejemplo: pepito.com');
     }
 
-    if (!compliesWithCompanyDomainPolicy(nextDomain, nextName)) {
-      const slug = sanitizeCompanyNameToSlug(nextName);
-      throw new BadRequestException(
-        `El dominio debe corresponder al nombre de la empresa. Usa ${slug}.com o variantes como ${slug}1.com`
-      );
+    const domainWillChange = nextDomain !== company.emailDomain;
+
+    if (domainWillChange) {
+      if (!dto.confirmAction) {
+        throw new BadRequestException(
+          'Debes confirmar explicitamente la accion para cambiar el dominio de correos.'
+        );
+      }
+
+      if (!dto.currentPassword) {
+        throw new BadRequestException(
+          'Debes ingresar tu contrasena actual para confirmar el cambio de dominio.'
+        );
+      }
+
+      const actor = await this.prisma.client.user.findFirst({
+        where: { id: actorUserId, companyId, deletedAt: null },
+        select: { id: true, passwordHash: true, role: true },
+      });
+
+      if (!actor) {
+        throw new UnauthorizedException('Usuario autenticado no valido para esta accion');
+      }
+      if (!['owner', 'superadmin'].includes(actor.role)) {
+        throw new UnauthorizedException('Solo owner o superadmin pueden cambiar el dominio');
+      }
+
+      const validPassword = await bcrypt.compare(dto.currentPassword, actor.passwordHash);
+      if (!validPassword) {
+        throw new UnauthorizedException('Contrasena actual incorrecta para confirmar esta accion');
+      }
     }
 
-    const domainWillChange = nextDomain !== company.emailDomain;
     const nextUsersEmails = company.users.map((user: { id: string; email: string }) => ({
       userId: user.id,
       nextEmail: `${getEmailLocalPart(user.email)}@${nextDomain}`,
