@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   Headers,
+  Query,
 } from '@nestjs/common';
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
@@ -17,6 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { SubscriptionGuard } from '../../common/guards/subscription.guard';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('sales')
 @UseGuards(JwtAuthGuard, SubscriptionGuard, RolesGuard)
@@ -35,8 +37,8 @@ export class SalesController {
 
   @Get()
   @Roles('owner', 'admin', 'employee', 'superadmin')
-  findAll(@Request() req: any) {
-    return this.salesService.findAll(req.user);
+  findAll(@Request() req: any, @Query() pagination: PaginationQueryDto) {
+    return this.salesService.findAll(req.user, pagination);
   }
 
   @Get(':id')

@@ -3,8 +3,19 @@ import { AppModule } from "./app.module";
 
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import type { NextFunction, Request, Response } from 'express';
 
 import * as cookieParser from 'cookie-parser';
+
+const PERMISSIONS_POLICY =
+  'accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), ' +
+  'magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(), usb=()';
+
+function isTrue(value?: string): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === 'true' || normalized === '1' || normalized === 'yes';
+}
 
 async function bootstrap() {
   const isProd = process.env.NODE_ENV === 'production';
@@ -23,13 +34,29 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.disable('x-powered-by');
 
-  if ((process.env.TRUST_PROXY ?? '').toLowerCase() === 'true') {
+  if (isTrue(process.env.TRUST_PROXY)) {
     expressApp.set('trust proxy', 1);
   }
 
-  // Security
+  // Security headers tuned for API responses.
   app.use(
     helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'none'"],
+          baseUri: ["'none'"],
+          frameAncestors: ["'none'"],
+          formAction: ["'none'"],
+          objectSrc: ["'none'"],
+          scriptSrc: ["'none'"],
+          styleSrc: ["'none'"],
+          imgSrc: ["'none'"],
+          connectSrc: ["'self'"],
+        },
+      },
+      frameguard: { action: 'deny' },
+      referrerPolicy: { policy: 'no-referrer' },
+      crossOriginEmbedderPolicy: false,
       hsts: isProd
         ? {
             maxAge: 31536000,
@@ -39,6 +66,10 @@ async function bootstrap() {
         : false,
     }),
   );
+  app.use((_: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
+    next();
+  });
   app.use(cookieParser());
   
   app.enableCors({

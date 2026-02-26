@@ -6,8 +6,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { Modal } from '@/components/ui/Modal';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 import { exportToExcel } from '@/lib/excel-utils';
-import { Branch, CashClosing, Customer, ProductOption, Sale } from '@/lib/dashboard-types';
+import { Branch, CashClosing, Customer, PaginatedData, ProductOption, Sale } from '@/lib/dashboard-types';
 
 type SaleItemForm = {
   productId: string;
@@ -25,10 +26,12 @@ type SaleFormData = {
 const initialSaleItems: SaleItemForm[] = [{ productId: '', quantity: '1', unitPrice: '' }];
 
 export default function VentasPage() {
+  const salesPageSize = 10;
   const [cashClosing, setCashClosing] = useState<CashClosing | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
   const [formError, setFormError] = useState('');
+  const [salesPage, setSalesPage] = useState(1);
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
@@ -40,34 +43,34 @@ export default function VentasPage() {
   });
 
   const salesQuery = useQuery({
-    queryKey: ['sales', 'list'],
+    queryKey: ['sales', 'list', salesPage, salesPageSize],
     queryFn: async () => {
-      const response = await api.sales.findAll();
-      return response.data as Sale[];
+      const response = await api.sales.findAll({ page: salesPage, limit: salesPageSize });
+      return response.data as PaginatedData<Sale>;
     },
   });
 
   const customersQuery = useQuery({
-    queryKey: ['customers', 'list'],
+    queryKey: ['customers', 'selector'],
     queryFn: async () => {
-      const response = await api.customers.findAll();
-      return response.data as Customer[];
+      const response = await api.customers.findAll({ page: 1, limit: 100 });
+      return (response.data as PaginatedData<Customer>).items;
     },
   });
 
   const branchesQuery = useQuery({
-    queryKey: ['branches', 'list'],
+    queryKey: ['branches', 'selector'],
     queryFn: async () => {
-      const response = await api.branches.findAll();
-      return response.data as Branch[];
+      const response = await api.branches.findAll({ page: 1, limit: 100 });
+      return (response.data as PaginatedData<Branch>).items;
     },
   });
 
   const productsQuery = useQuery({
     queryKey: ['inventory', 'products', formData.branchId],
     queryFn: async () => {
-      const response = await api.inventory.listProducts(formData.branchId);
-      return response.data as ProductOption[];
+      const response = await api.inventory.listProducts(formData.branchId, { page: 1, limit: 100 });
+      return (response.data as PaginatedData<ProductOption>).items.filter((item) => Number(item.quantity) > 0);
     },
     enabled: !!formData.branchId,
   });
@@ -93,7 +96,8 @@ export default function VentasPage() {
       ),
   });
 
-  const sales = salesQuery.data ?? [];
+  const sales = salesQuery.data?.items ?? [];
+  const salesPagination = salesQuery.data?.meta;
   const customers = customersQuery.data ?? [];
   const branches = branchesQuery.data ?? [];
   const products = productsQuery.data ?? [];
@@ -139,7 +143,7 @@ export default function VentasPage() {
           return {
             ...item,
             productId: value,
-            unitPrice: selectedProduct ? String(selectedProduct.unitCost) : '',
+            unitPrice: selectedProduct ? String(selectedProduct.price) : '',
           };
         }
 
@@ -178,7 +182,7 @@ export default function VentasPage() {
 
       if (!product || !Number.isFinite(requested) || requested <= 0) continue;
       if (requested > Number(product.quantity)) {
-        return `La cantidad de ${item.productId} excede el stock disponible (${Number(product.quantity)}).`;
+        return `La cantidad de ${product.name} (${item.productId}) excede el stock disponible (${Number(product.quantity)}).`;
       }
     }
 
@@ -247,6 +251,7 @@ export default function VentasPage() {
           queryClient.invalidateQueries({ queryKey: ['sales', 'list'] }),
           queryClient.invalidateQueries({ queryKey: ['inventory', 'products'] }),
         ]);
+        setSalesPage(1);
       }
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : 'Error al registrar venta');
@@ -437,6 +442,11 @@ export default function VentasPage() {
             </tbody>
           </table>
         </div>
+        <PaginationControls
+          meta={salesPagination}
+          isLoading={salesQuery.isFetching}
+          onPageChange={setSalesPage}
+        />
       </div>
 
       <Modal isOpen={isCashModalOpen} onClose={() => setIsCashModalOpen(false)} title="Resumen de Cierre de Caja">
@@ -568,7 +578,7 @@ export default function VentasPage() {
                     <option value="">{loadingProducts ? 'Cargando productos...' : 'Selecciona producto'}</option>
                     {products.map((p) => (
                       <option key={`${p.branchId}-${p.productId}`} value={p.productId}>
-                        {p.productId} (Stock: {p.quantity}, Precio: S/ {Number(p.unitCost).toFixed(2)})
+                        {p.name} [{p.category}] (Stock: {p.quantity}, Precio: S/ {Number(p.price).toFixed(2)})
                       </option>
                     ))}
                   </select>

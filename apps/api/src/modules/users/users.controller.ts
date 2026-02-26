@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -6,6 +6,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateCompanyUserDto } from './dto/create-company-user.dto';
 import { SubscriptionGuard } from '../../common/guards/subscription.guard';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, SubscriptionGuard, RolesGuard)
@@ -20,8 +21,8 @@ export class UsersController {
 
   @Get('company-users')
   @Roles('owner', 'admin', 'superadmin')
-  listCompanyUsers(@Request() req: any) {
-    return this.usersService.listCompanyUsers(req.user.companyId);
+  listCompanyUsers(@Request() req: any, @Query() pagination: PaginationQueryDto) {
+    return this.usersService.listCompanyUsers(req.user.companyId, pagination);
   }
 
   @Post('company-users')

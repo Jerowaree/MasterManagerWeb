@@ -15,6 +15,8 @@ import {
   assertActorBranchScope,
   resolveActorBranchFilter,
 } from '../../common/utils/branch-access.utils';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { resolvePagination, toPaginatedResult } from '../../common/utils/pagination.utils';
 
 @Injectable()
 export class SalesService {
@@ -84,7 +86,6 @@ export class SalesService {
       items: (createSaleDto.items ?? []).map((i) => ({
         productId: i.productId,
         quantity: i.quantity,
-        unitPrice: i.unitPrice,
       })),
     });
     const now = new Date();
@@ -164,34 +165,15 @@ export class SalesService {
     const sanitizedItems = (createSaleDto.items ?? []).map((item) => ({
       productId: item.productId.trim(),
       quantity: Number(item.quantity),
-      unitPrice: Number(item.unitPrice),
     }));
 
     for (const item of sanitizedItems) {
-      if (!item.productId || item.quantity <= 0 || item.unitPrice < 0) {
+      if (!item.productId || item.quantity <= 0) {
         throw new BadRequestException('Hay items de venta invalidos');
       }
     }
 
-    const computedTotal = sanitizedItems.reduce(
-      (acc, item) => acc + item.quantity * item.unitPrice,
-      0
-    );
-
-    if (createSaleDto.total && sanitizedItems.length > 0) {
-      const diff = Math.abs(Number(createSaleDto.total) - computedTotal);
-      if (diff > 0.01) {
-        throw new BadRequestException('El total enviado no coincide con el detalle de items');
-      }
-    }
-
-    const effectiveTotal = sanitizedItems.length > 0 ? computedTotal : Number(createSaleDto.total ?? 0);
-
-    if (effectiveTotal <= 0) {
-      throw new BadRequestException('Debes enviar un total mayor a cero o items validos');
-    }
-
-    return this.prisma.client.$transaction(async (tx: any) => {
+    return this.prisma.client.$transaction(async (tx: typeof this.prisma.client) => {
       return tenantStorage.run({ companyId }, async () => {
         const requestedByProduct = sanitizedItems.reduce((acc, item) => {
           acc.set(item.productId, (acc.get(item.productId) ?? 0) + item.quantity);
@@ -200,8 +182,28 @@ export class SalesService {
 
         const productIds = [...requestedByProduct.keys()];
         const availableByProduct = new Map<string, number>();
+        const priceByProduct = new Map<string, number>();
 
         if (productIds.length > 0) {
+          const products = await tx.product.findMany({
+            where: {
+              companyId,
+              productId: { in: productIds },
+              deletedAt: null,
+            },
+            select: { productId: true, price: true },
+          });
+
+          products.forEach((product: { productId: string; price: number }) => {
+            priceByProduct.set(product.productId, Number(product.price));
+          });
+
+          for (const productId of productIds) {
+            if (!priceByProduct.has(productId)) {
+              throw new NotFoundException(`Producto no encontrado en catalogo: ${productId}`);
+            }
+          }
+
           const snapshots = await tx.productStock.findMany({
             where: {
               companyId,
@@ -214,12 +216,38 @@ export class SalesService {
           snapshots.forEach((s: { productId: string; quantity: number }) => {
             availableByProduct.set(s.productId, Number(s.quantity));
           });
+        }
 
-          for (const productId of productIds) {
-            if (!availableByProduct.has(productId)) {
-              throw new NotFoundException(`Producto no encontrado en inventario: ${productId}`);
-            }
+        const pricedItems = sanitizedItems.map((item) => {
+          const unitPrice = priceByProduct.get(item.productId);
+          if (!Number.isFinite(unitPrice)) {
+            throw new NotFoundException(`Precio no configurado para ${item.productId}`);
           }
+          return {
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: Number(unitPrice),
+          };
+        });
+
+        const computedTotal = pricedItems.reduce(
+          (acc, item) => acc + item.quantity * item.unitPrice,
+          0,
+        );
+
+        if (createSaleDto.total && pricedItems.length > 0) {
+          const diff = Math.abs(Number(createSaleDto.total) - computedTotal);
+          if (diff > 0.01) {
+            throw new BadRequestException(
+              'El total enviado no coincide con el total oficial del catalogo de productos',
+            );
+          }
+        }
+
+        const effectiveTotal =
+          pricedItems.length > 0 ? computedTotal : Number(createSaleDto.total ?? 0);
+        if (effectiveTotal <= 0) {
+          throw new BadRequestException('Debes enviar un total mayor a cero o items validos');
         }
 
         if (effectiveStatus === SaleStatus.PAID) {
@@ -257,9 +285,9 @@ export class SalesService {
             idempotencyFirstSeenAt: normalizedIdempotencyKey ? now : null,
             idempotencyLastSeenAt: normalizedIdempotencyKey ? now : null,
             items:
-              sanitizedItems.length > 0
+              pricedItems.length > 0
                 ? {
-                    create: sanitizedItems.map((item) => ({
+                    create: pricedItems.map((item) => ({
                       companyId,
                       productId: item.productId,
                       quantity: item.quantity,
@@ -271,8 +299,8 @@ export class SalesService {
           include: { items: true, customer: true, branch: true },
         });
 
-          if (sanitizedItems.length > 0 && effectiveStatus === SaleStatus.PAID) {
-            for (const item of sanitizedItems) {
+          if (pricedItems.length > 0 && effectiveStatus === SaleStatus.PAID) {
+            for (const item of pricedItems) {
               await tx.inventoryMovement.create({
                 data: {
                   branchId: createSaleDto.branchId,
@@ -286,8 +314,9 @@ export class SalesService {
           }
 
           return sale;
-        } catch (error: any) {
-          if (normalizedIdempotencyKey && error?.code === 'P2002') {
+        } catch (error: unknown) {
+          const errorCode = (error as { code?: string })?.code;
+          if (normalizedIdempotencyKey && errorCode === 'P2002') {
             const existing = await tx.sale.findFirst({
               where: {
                 companyId,
@@ -321,7 +350,7 @@ export class SalesService {
             }
           }
 
-          if (error?.code === 'P2002') {
+          if (errorCode === 'P2002') {
             throw new ConflictException('Conflicto de venta duplicada');
           }
           throw error;
@@ -330,20 +359,30 @@ export class SalesService {
     });
   }
 
-  async findAll(actor: ActorContext) {
+  async findAll(actor: ActorContext, pagination: PaginationQueryDto) {
     const branchId = resolveActorBranchFilter(actor);
+    const { page, limit, skip, take } = resolvePagination(pagination);
+    const where = {
+      deletedAt: null,
+      ...(branchId ? { branchId } : {}),
+    };
 
-    return this.prisma.client.sale.findMany({
-      include: {
-        customer: true,
-        branch: true,
-        items: true,
-      },
-      where: {
-        deletedAt: null,
-        ...(branchId ? { branchId } : {}),
-      },
-    });
+    const [items, total] = await Promise.all([
+      this.prisma.client.sale.findMany({
+        include: {
+          customer: true,
+          branch: true,
+          items: true,
+        },
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.client.sale.count({ where }),
+    ]);
+
+    return toPaginatedResult(items, page, limit, total);
   }
 
   async findOne(id: string, actor: ActorContext) {
@@ -389,8 +428,9 @@ export class SalesService {
           ...(updateSaleDto.status !== undefined ? { status: updateSaleDto.status } : {}),
         },
       });
-    } catch (error: any) {
-      if (error?.code === 'P2025') {
+    } catch (error: unknown) {
+      const errorCode = (error as { code?: string })?.code;
+      if (errorCode === 'P2025') {
         throw new NotFoundException('Venta no encontrada');
       }
       throw error;
@@ -405,8 +445,9 @@ export class SalesService {
         where: { id },
         data: { deletedAt: new Date() },
       });
-    } catch (error: any) {
-      if (error?.code === 'P2025') {
+    } catch (error: unknown) {
+      const errorCode = (error as { code?: string })?.code;
+      if (errorCode === 'P2025') {
         throw new NotFoundException('Venta no encontrada');
       }
       throw error;

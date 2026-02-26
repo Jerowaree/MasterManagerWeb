@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { SubscriptionGuard } from '../../common/guards/subscription.guard';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('customers')
 @UseGuards(JwtAuthGuard, SubscriptionGuard, RolesGuard)
@@ -20,8 +21,8 @@ export class CustomersController {
 
   @Get()
   @Roles('owner', 'admin', 'employee', 'superadmin')
-  findAll(@Request() req: any) {
-    return this.customersService.findAll(req.user);
+  findAll(@Request() req: any, @Query() pagination: PaginationQueryDto) {
+    return this.customersService.findAll(req.user, pagination);
   }
 
   @Get(':id')

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { UpdateBranchDto } from './dto/update-branch.dto';
@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { SubscriptionGuard } from '../../common/guards/subscription.guard';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('branches')
 @UseGuards(JwtAuthGuard, SubscriptionGuard, RolesGuard)
@@ -19,8 +20,8 @@ export class BranchesController {
   }
 
   @Get()
-  findAll() {
-    return this.branchesService.findAll();
+  findAll(@Query() pagination: PaginationQueryDto) {
+    return this.branchesService.findAll(pagination);
   }
 
   @Get(':id')

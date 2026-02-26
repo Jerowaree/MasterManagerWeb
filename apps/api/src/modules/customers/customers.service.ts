@@ -7,6 +7,8 @@ import {
   assertActorBranchScope,
   isBranchScopedRole,
 } from '../../common/utils/branch-access.utils';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { resolvePagination, toPaginatedResult } from '../../common/utils/pagination.utils';
 
 @Injectable()
 export class CustomersService {
@@ -40,17 +42,28 @@ export class CustomersService {
     });
   }
 
-  async findAll(actor: ActorContext) {
+  async findAll(actor: ActorContext, pagination: PaginationQueryDto) {
     if (isBranchScopedRole(actor.role) && !actor.branchId) {
       throw new BadRequestException('El usuario no tiene una sucursal asignada');
     }
 
-    return this.prisma.client.customer.findMany({
-      where: {
-        deletedAt: null,
-        ...(isBranchScopedRole(actor.role) ? { branchId: actor.branchId! } : {}),
-      },
-    });
+    const { page, limit, skip, take } = resolvePagination(pagination);
+    const where = {
+      deletedAt: null,
+      ...(isBranchScopedRole(actor.role) ? { branchId: actor.branchId! } : {}),
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.client.customer.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.client.customer.count({ where }),
+    ]);
+
+    return toPaginatedResult(items, page, limit, total);
   }
 
   async findOne(id: string, actor: ActorContext) {

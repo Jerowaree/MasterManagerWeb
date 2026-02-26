@@ -6,6 +6,7 @@ import {
   ShoppingCart, 
   Users, 
   Package, 
+  ArrowRightLeft,
   LayoutDashboard,
   Settings,
   LogOut,
@@ -66,6 +67,7 @@ export default function DashboardLayout({
           <SidebarItem icon={LayoutDashboard} label="Resumen" href="/dashboard" active={pathname === '/dashboard'} />
           <SidebarItem icon={ShoppingCart} label="Ventas" href="/dashboard/ventas" active={pathname === '/dashboard/ventas'} />
           <SidebarItem icon={Package} label="Inventario" href="/dashboard/inventario" active={pathname === '/dashboard/inventario'} />
+          <SidebarItem icon={ArrowRightLeft} label="Movimientos" href="/dashboard/movimientos" active={pathname === '/dashboard/movimientos'} />
           <SidebarItem icon={Building2} label="Sucursales" href="/dashboard/sucursales" active={pathname === '/dashboard/sucursales'} />
           <SidebarItem icon={Users} label="Clientes" href="/dashboard/clientes" active={pathname === '/dashboard/clientes'} />
         </nav>

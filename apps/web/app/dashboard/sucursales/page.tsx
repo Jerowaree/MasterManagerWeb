@@ -5,7 +5,8 @@ import { Building2, Plus, Clock, Globe, Save, Loader2, MapPin } from 'lucide-rea
 import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { Modal } from '@/components/ui/Modal';
-import { Branch } from '@/lib/dashboard-types';
+import { PaginationControls } from '@/components/ui/PaginationControls';
+import { Branch, PaginationMeta, PaginatedData } from '@/lib/dashboard-types';
 
 type AddressSuggestion = {
   placeId: string;
@@ -23,7 +24,10 @@ type BranchFormData = {
 };
 
 export default function SucursalesPage() {
+  const branchesPageSize = 9;
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [branchesPagination, setBranchesPagination] = useState<PaginationMeta | undefined>();
+  const [branchesPage, setBranchesPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,12 +48,14 @@ export default function SucursalesPage() {
     [isModalOpen, formData.address]
   );
 
-  const loadBranches = async () => {
+  const loadBranches = async (page: number) => {
     try {
       setLoading(true);
-      const response = await api.branches.findAll();
+      const response = await api.branches.findAll({ page, limit: branchesPageSize });
       if (response.success) {
-        setBranches(response.data);
+        const paginated = response.data as PaginatedData<Branch>;
+        setBranches(paginated.items);
+        setBranchesPagination(paginated.meta);
       }
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : 'Error al cargar sucursales', 'error');
@@ -59,8 +65,8 @@ export default function SucursalesPage() {
   };
 
   useEffect(() => {
-    loadBranches();
-  }, []);
+    loadBranches(branchesPage);
+  }, [branchesPage]);
 
   useEffect(() => {
     if (!canSearchAddress) {
@@ -120,7 +126,8 @@ export default function SucursalesPage() {
         setIsModalOpen(false);
         setFormData({ name: '', timezone: 'America/Lima', address: '', latitude: undefined, longitude: undefined });
         setAddressSuggestions([]);
-        loadBranches();
+        setBranchesPage(1);
+        await loadBranches(1);
       }
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : 'Error al crear sede', 'error');
@@ -204,6 +211,11 @@ export default function SucursalesPage() {
           <p className="col-span-full text-center text-gray-400 py-20 italic">No se encontraron sucursales.</p>
         )}
       </div>
+      <PaginationControls
+        meta={branchesPagination}
+        isLoading={loading}
+        onPageChange={setBranchesPage}
+      />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nueva Sede">
         <form onSubmit={handleSubmit} className="space-y-6">

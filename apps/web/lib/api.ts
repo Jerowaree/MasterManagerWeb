@@ -1,6 +1,11 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 let refreshPromise: Promise<boolean> | null = null;
 
+type PaginationParams = {
+  page?: number;
+  limit?: number;
+};
+
 function getCookie(name: string) {
   if (typeof document === 'undefined') return null;
   const target = `${name}=`;
@@ -77,6 +82,17 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}, allowR
   return response.json();
 }
 
+function buildQueryString(params: Record<string, string | number | undefined>) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    searchParams.set(key, String(value));
+  });
+
+  const query = searchParams.toString();
+  return query ? `?${query}` : '';
+}
+
 export const api = {
   auth: {
     me: () => fetchWithAuth('/auth/me'),
@@ -90,7 +106,8 @@ export const api = {
       fetchWithAuth('/reports/email-report', { method: 'POST', body: JSON.stringify({ type }) }),
   },
   sales: {
-    findAll: () => fetchWithAuth('/sales'),
+    findAll: (params?: PaginationParams) =>
+      fetchWithAuth(`/sales${buildQueryString({ page: params?.page, limit: params?.limit })}`),
     create: (data: unknown, idempotencyKey?: string) =>
       fetchWithAuth('/sales', {
         method: 'POST',
@@ -99,10 +116,40 @@ export const api = {
       }),
   },
   inventory: {
-    getMovements: () => fetchWithAuth('/inventory/movements'),
+    getMovements: (params?: PaginationParams) =>
+      fetchWithAuth(`/inventory/movements${buildQueryString({ page: params?.page, limit: params?.limit })}`),
+    getLowStock: (branchId?: string, params?: PaginationParams) =>
+      fetchWithAuth(
+        `/inventory/low-stock${buildQueryString({
+          branchId,
+          page: params?.page,
+          limit: params?.limit,
+        })}`,
+      ),
+    createProduct: (data: unknown) =>
+      fetchWithAuth('/inventory/products', { method: 'POST', body: JSON.stringify(data) }),
+    updateProduct: (productId: string, data: unknown) =>
+      fetchWithAuth(`/inventory/products/${encodeURIComponent(productId)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    adjustProductStock: (
+      productId: string,
+      data: { branchId?: string; quantity: number; unitCost?: number },
+    ) =>
+      fetchWithAuth(`/inventory/products/${encodeURIComponent(productId)}/stock`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
     create: (data: unknown) => fetchWithAuth('/inventory/movements', { method: 'POST', body: JSON.stringify(data) }),
-    listProducts: (branchId?: string) =>
-      fetchWithAuth(`/inventory/products${branchId ? `?branchId=${branchId}` : ''}`),
+    listProducts: (branchId?: string, params?: PaginationParams) =>
+      fetchWithAuth(
+        `/inventory/products${buildQueryString({
+          branchId,
+          page: params?.page,
+          limit: params?.limit,
+        })}`,
+      ),
     getStock: (productId: string, branchId?: string) => 
       fetchWithAuth(`/inventory/stock/${productId}${branchId ? `?branchId=${branchId}` : ''}`),
   },
@@ -111,16 +158,19 @@ export const api = {
       fetchWithAuth(`/geo/search?q=${encodeURIComponent(q)}${countryCode ? `&countryCode=${encodeURIComponent(countryCode)}` : ''}`),
   },
   customers: {
-    findAll: () => fetchWithAuth('/customers'),
+    findAll: (params?: PaginationParams) =>
+      fetchWithAuth(`/customers${buildQueryString({ page: params?.page, limit: params?.limit })}`),
     create: (data: unknown) => fetchWithAuth('/customers', { method: 'POST', body: JSON.stringify(data) }),
   },
   branches: {
-    findAll: () => fetchWithAuth('/branches'),
+    findAll: (params?: PaginationParams) =>
+      fetchWithAuth(`/branches${buildQueryString({ page: params?.page, limit: params?.limit })}`),
     create: (data: unknown) => fetchWithAuth('/branches', { method: 'POST', body: JSON.stringify(data) }),
   },
   users: {
     getProfile: () => fetchWithAuth('/users/profile'),
-    listCompanyUsers: () => fetchWithAuth('/users/company-users'),
+    listCompanyUsers: (params?: PaginationParams) =>
+      fetchWithAuth(`/users/company-users${buildQueryString({ page: params?.page, limit: params?.limit })}`),
     createCompanyUser: (data: {
       username: string;
       password: string;
@@ -143,5 +193,17 @@ export const api = {
       confirmAction?: boolean;
       currentPassword?: string;
     }) => fetchWithAuth('/companies/me', { method: 'PATCH', body: JSON.stringify(data) }),
+  },
+  payments: {
+    listPlans: () => fetchWithAuth('/payments/plans'),
+    payPlan: (data: { planId: string; cycle: 'monthly' | 'yearly'; currentPassword: string }) =>
+      fetchWithAuth('/payments/pay-plan', { method: 'POST', body: JSON.stringify(data) }),
+  },
+  peru: {
+    getSunatStatus: () => fetchWithAuth('/peru/sunat/status'),
+    issueSaleDocument: (saleId: string) =>
+      fetchWithAuth(`/peru/sunat/sales/${encodeURIComponent(saleId)}/issue`, { method: 'POST' }),
+    listSunatDocuments: (params?: PaginationParams) =>
+      fetchWithAuth(`/peru/sunat/documents${buildQueryString({ page: params?.page, limit: params?.limit })}`),
   }
 };

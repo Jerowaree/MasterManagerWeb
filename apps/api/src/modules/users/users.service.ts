@@ -17,6 +17,8 @@ import {
   compliesWithCompanyDomainPolicy,
   sanitizeCompanyNameToSlug,
 } from '../../common/utils/company-domain.utils';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { resolvePagination, toPaginatedResult } from '../../common/utils/pagination.utils';
 
 @Injectable()
 export class UsersService {
@@ -39,18 +41,28 @@ export class UsersService {
     return result;
   }
 
-  async listCompanyUsers(companyId: string) {
-    return this.prisma.client.user.findMany({
-      where: { companyId, deletedAt: null },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        branchId: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
+  async listCompanyUsers(companyId: string, pagination: PaginationQueryDto) {
+    const { page, limit, skip, take } = resolvePagination(pagination);
+    const where = { companyId, deletedAt: null };
+
+    const [items, total] = await Promise.all([
+      this.prisma.client.user.findMany({
+        where,
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          branchId: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.client.user.count({ where }),
+    ]);
+
+    return toPaginatedResult(items, page, limit, total);
   }
 
   async createCompanyUser(companyId: string, actorUserId: string, dto: CreateCompanyUserDto) {

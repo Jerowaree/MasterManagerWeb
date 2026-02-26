@@ -1,5 +1,19 @@
 export type SaleStatus = 'paid' | 'pending' | string;
 
+export type PaginationMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+};
+
+export type PaginatedData<T> = {
+  items: T[];
+  meta: PaginationMeta;
+};
+
 export type UserSummary = {
   id: string;
   email: string;
@@ -54,6 +68,11 @@ export type InventoryMovement = {
   quantity: number;
   unitCost: number;
   createdAt: string;
+  product?: {
+    name?: string | null;
+    category?: string | null;
+    price?: number | null;
+  } | null;
   branch?: {
     name?: string | null;
   } | null;
@@ -73,10 +92,26 @@ export type InventoryValorization = {
 
 export type ProductOption = {
   productId: string;
-  branchId: string;
+  name: string;
+  category: string;
+  price: number;
+  minStock: number;
+  branchId: string | null;
   quantity: number;
+  isLowStock?: boolean;
   unitCost: number;
   updatedAt: string;
+};
+
+export type LowStockProduct = {
+  productId: string;
+  name: string;
+  category: string;
+  minStock: number;
+  quantity: number;
+  isLowStock: boolean;
+  updatedAt?: string | null;
+  branchId?: string | null;
 };
 
 export type DashboardStats = {
@@ -90,4 +125,33 @@ export type DashboardStats = {
 export type DashboardData = {
   stats: DashboardStats;
   recentSales: Sale[];
+};
+
+export type SunatStatus = {
+  enabled: boolean;
+  country: string;
+  provider: string;
+  environment: string;
+};
+
+export type SunatDocument = {
+  id: string;
+  saleId: string;
+  documentType: 'factura' | 'boleta' | string;
+  series: string;
+  correlative: string;
+  status: string;
+  externalId?: string | null;
+  issuedAt?: string | null;
+  createdAt: string;
+  sale?: {
+    id: string;
+    total: number;
+    status: string;
+    createdAt: string;
+  } | null;
+  branch?: {
+    id: string;
+    name: string;
+  } | null;
 };

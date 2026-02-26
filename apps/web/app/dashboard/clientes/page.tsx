@@ -7,11 +7,14 @@ import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/contexts/auth-context';
 import { Modal } from '@/components/ui/Modal';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 import { exportToExcel } from '@/lib/excel-utils';
-import { Customer } from '@/lib/dashboard-types';
+import { Customer, PaginatedData } from '@/lib/dashboard-types';
 
 export default function ClientesPage() {
+  const customersPageSize = 12;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [customersPage, setCustomersPage] = useState(1);
   const { showToast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -26,10 +29,10 @@ export default function ClientesPage() {
   });
 
   const customersQuery = useQuery({
-    queryKey: ['customers', 'list'],
+    queryKey: ['customers', 'list', customersPage, customersPageSize],
     queryFn: async () => {
-      const response = await api.customers.findAll();
-      return response.data as Customer[];
+      const response = await api.customers.findAll({ page: customersPage, limit: customersPageSize });
+      return response.data as PaginatedData<Customer>;
     },
   });
 
@@ -45,7 +48,8 @@ export default function ClientesPage() {
     }) => api.customers.create(payload),
   });
 
-  const customers = customersQuery.data ?? [];
+  const customers = customersQuery.data?.items ?? [];
+  const customersPagination = customersQuery.data?.meta;
   const loading = customersQuery.isLoading;
   const isSubmitting = createCustomerMutation.isPending;
 
@@ -72,6 +76,7 @@ export default function ClientesPage() {
         setIsModalOpen(false);
         setFormData({ name: '', email: '', phone: '', documentType: 'DNI', documentNumber: '', address: '' });
         await queryClient.invalidateQueries({ queryKey: ['customers', 'list'] });
+        setCustomersPage(1);
       }
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : 'Error al crear cliente', 'error');
@@ -169,6 +174,11 @@ export default function ClientesPage() {
           </div>
         )}
       </div>
+      <PaginationControls
+        meta={customersPagination}
+        isLoading={customersQuery.isFetching}
+        onPageChange={setCustomersPage}
+      />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nuevo Cliente">
         <form onSubmit={handleSubmit} className="space-y-6">

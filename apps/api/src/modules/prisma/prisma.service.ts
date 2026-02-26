@@ -12,6 +12,8 @@ const TENANT_MODELS = [
   'Purchase', 
   'InventoryMovement', 
   'ProductStock',
+  'Product',
+  'ElectronicDocument',
   'Subscription', 
   'PaymentLog', 
   'AuditLog'
