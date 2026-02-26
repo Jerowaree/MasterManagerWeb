@@ -125,11 +125,11 @@ export default function SettingsPage() {
     e.preventDefault();
     const strength = evaluatePassword(passwordData.newPassword);
     if (strength.score < 5) {
-      showToast('La nueva contrasena no cumple la politica de seguridad', 'error');
+      showToast('La nueva contraseña no cumple la politica de seguridad', 'error');
       return;
     }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showToast('Las contrasenas no coinciden', 'error');
+      showToast('Las contraseñas no coinciden', 'error');
       return;
     }
 
@@ -140,11 +140,11 @@ export default function SettingsPage() {
         newPassword: passwordData.newPassword
       });
       if (response.success) {
-        showToast('Contrasena actualizada con exito', 'success');
+        showToast('Contraseña actualizada con exito', 'success');
         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al actualizar contrasena';
+      const message = err instanceof Error ? err.message : 'Error al actualizar contraseña';
       showToast(message, 'error');
     } finally {
       setSavingPassword(false);
@@ -163,7 +163,7 @@ export default function SettingsPage() {
 
     if (needsCriticalConfirmation) {
       if (!canRunCriticalActions) {
-        showToast('Solo owner o superadmin pueden cambiar el dominio', 'error');
+        showToast('Solo el administrador de la empresa puede cambiar el dominio', 'error');
         return;
       }
       setPendingAction({ type: 'domain-change', values });
@@ -222,7 +222,7 @@ export default function SettingsPage() {
 
     if (values.role === 'admin') {
       if (!canRunCriticalActions) {
-        showToast('Solo owner o superadmin pueden crear usuarios admin', 'error');
+        showToast('Solo el administrador de la empresa puede crear usuarios admin', 'error');
         return false;
       }
       setPendingAction({ type: 'create-admin', values });
@@ -295,7 +295,7 @@ export default function SettingsPage() {
       return {
         title: 'Confirmar cambio de dominio',
         description:
-          'Cambiar el dominio afectara los correos permitidos para todos los usuarios del tenant. Confirma con tu contrasena actual.',
+          'Cambiar el dominio afectara los correos permitidos para todos los usuarios de su empresa. Confirma con tu contraseña actual.',
         actionLabel: 'Confirmar cambio',
       };
     }
@@ -303,7 +303,7 @@ export default function SettingsPage() {
     return {
       title: 'Confirmar creacion de admin',
       description:
-        'Estas por crear un usuario con permisos administrativos. Confirma con tu contrasena actual para continuar.',
+        'Estas por crear un usuario con permisos administrativos. Confirma con tu contraseña actual para continuar.',
       actionLabel: 'Crear admin',
     };
   }, [pendingAction]);
@@ -320,7 +320,7 @@ export default function SettingsPage() {
     <div className="max-w-5xl mx-auto space-y-10">
       <div>
         <h1 className="text-3xl font-bold text-black font-heading">Configuracion</h1>
-        <p className="text-gray-500">Gestiona la seguridad, tu empresa y los usuarios del tenant.</p>
+        <p className="text-gray-500">Gestiona la seguridad, tu empresa y los usuarios de tu empresa.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -336,7 +336,7 @@ export default function SettingsPage() {
             </button>
             <button className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium text-sm text-left transition-colors">
               <Users className="w-4 h-4" />
-              Usuarios del Tenant
+              Usuarios de la empresa
             </button>
           </nav>
         </div>
@@ -387,7 +387,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-black">Datos de la Empresa</h3>
-                <p className="text-xs text-gray-400 font-medium">Actualizar nombre y dominio de correos del tenant</p>
+                <p className="text-xs text-gray-400 font-medium">Actualizar nombre y dominio de correos de la empresa</p>
               </div>
             </div>
 
@@ -413,7 +413,7 @@ export default function SettingsPage() {
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-black">Usuarios del Tenant</h3>
+                  <h3 className="font-bold text-black">Usuarios de la empresa</h3>
                   <p className="text-xs text-gray-400 font-medium">
                     Se crean con el dominio @{profile?.company?.emailDomain}
                   </p>
@@ -437,7 +437,7 @@ export default function SettingsPage() {
                   </div>
                 ))}
                 {companyUsers.length === 0 && (
-                  <p className="text-sm text-gray-500">No hay usuarios registrados para este tenant.</p>
+                  <p className="text-sm text-gray-500">No hay usuarios registrados para esta empresa.</p>
                 )}
               </div>
             </motion.section>
@@ -455,14 +455,14 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-black">Seguridad de Cuenta</h3>
-                <p className="text-xs text-gray-400 font-medium">Actualiza tu contrasena de acceso</p>
+                <p className="text-xs text-gray-400 font-medium">Actualiza tu contraseña de acceso</p>
               </div>
             </div>
 
             <form onSubmit={handlePasswordChange} className="space-y-6">
               <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">Contrasena Actual</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">Contraseña Actual</label>
                   <input
                     type="password"
                     required
@@ -474,7 +474,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nueva Contrasena</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nueva Contraseña</label>
                     <input
                       type="password"
                       required
@@ -486,7 +486,7 @@ export default function SettingsPage() {
                     <PasswordStrengthHint password={passwordData.newPassword} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Confirmar Contrasena</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Confirmar Contraseña</label>
                     <input
                       type="password"
                       required
@@ -506,7 +506,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-2 px-8 py-3 bg-black text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-xl shadow-black/10 disabled:opacity-50"
                 >
                   {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Actualizar Contrasena
+                  Actualizar Contraseña
                 </button>
               </div>
             </form>
