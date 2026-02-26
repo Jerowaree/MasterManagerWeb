@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber, IsEnum, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsEnum, IsUUID, Min } from 'class-validator';
 import { MovementType } from '@master-manager/database';
 
 export class CreateMovementDto {
@@ -16,9 +16,11 @@ export class CreateMovementDto {
 
   @IsNumber()
   @IsNotEmpty()
+  @Min(0.01)
   quantity!: number;
 
   @IsNumber()
   @IsNotEmpty()
+  @Min(0.01)
   unitCost!: number;
 }

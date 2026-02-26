@@ -20,6 +20,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormData } from '@/lib/validations';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/auth-context';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function LoginPage() {
@@ -28,6 +29,7 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [submissionStartedAt] = useState<number>(() => Date.now());
   const { showToast } = useToast();
+  const { login } = useAuth();
 
   const {
     register,
@@ -53,6 +55,10 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        if (result?.data?.id) {
+          login(result.data);
+        }
         showToast('¡Bienvenido de vuelta!', 'success');
         window.location.href = '/dashboard';
       } else {
@@ -222,3 +228,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   Building2, 
   ShoppingCart, 
@@ -11,10 +11,9 @@ import {
   LogOut,
   Bell,
   Search,
-  Menu,
-  X
+  LucideIcon
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
@@ -25,14 +24,32 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-10 h-10 border-4 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -106,7 +123,14 @@ export default function DashboardLayout({
   );
 }
 
-function SidebarItem({ icon: Icon, label, href, active = false }: any) {
+type SidebarItemProps = {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  active?: boolean;
+};
+
+function SidebarItem({ icon: Icon, label, href, active = false }: SidebarItemProps) {
   return (
     <Link href={href}>
       <button className={cn(

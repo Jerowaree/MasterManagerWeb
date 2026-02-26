@@ -1,4 +1,4 @@
-import { IsBoolean, IsIn, IsOptional, IsString, MaxLength, MinLength, Matches } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString, IsUUID, MaxLength, MinLength, Matches } from 'class-validator';
 import { PASSWORD_MIN_LENGTH, PASSWORD_POLICY } from '../../../common/utils/password-policy.utils';
 
 export class CreateCompanyUserDto {
@@ -19,7 +19,7 @@ export class CreateCompanyUserDto {
   password!: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   branchId?: string;
 
   @IsOptional()

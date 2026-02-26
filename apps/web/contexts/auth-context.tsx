@@ -1,8 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { api } from '@/lib/api';
 
-interface User {
+export interface User {
   id: string;
   email: string;
   companyId: string;
@@ -12,46 +13,69 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
+  login: (user: User) => void;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+  const refreshUser = useCallback(async () => {
+    try {
+      const response = await api.auth.me();
+      if (response.success) {
+        setUser(response.data);
+        return;
+      }
+      setUser(null);
+    } catch {
+      setUser(null);
     }
   }, []);
 
-  const login = (newToken: string, newUser: User) => {
-    setToken(newToken);
-    setUser(newUser);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+  useEffect(() => {
+    const bootstrapSession = async () => {
+      setIsLoading(true);
+      await refreshUser();
+      setIsLoading(false);
+    };
+
+    bootstrapSession();
+  }, [refreshUser]);
+
+  const login = (nextUser: User) => {
+    setUser(nextUser);
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      await api.auth.logout();
+    } catch {
+      // Ignore network errors on logout; client state should still be cleared.
+    } finally {
+      setUser(null);
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      login,
+      logout,
+      refreshUser,
+      isAuthenticated: !!user,
+      isLoading,
+    }),
+    [isLoading, refreshUser, user]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

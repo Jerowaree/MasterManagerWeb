@@ -1,4 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+let refreshPromise: Promise<boolean> | null = null;
 
 function getCookie(name: string) {
   if (typeof document === 'undefined') return null;
@@ -10,15 +11,34 @@ function getCookie(name: string) {
   return found ? decodeURIComponent(found.slice(target.length)) : null;
 }
 
-async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  const token = localStorage.getItem('token');
+async function refreshSession() {
+  const csrfToken = getCookie('csrf_token');
+  const response = await fetch(`${API_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
+    },
+    credentials: 'include',
+  });
+
+  return response.ok;
+}
+
+function redirectToLogin() {
+  if (typeof window === 'undefined') return;
+  const currentPath = window.location.pathname;
+  if (currentPath === '/login' || currentPath === '/register') return;
+  window.location.href = '/login';
+}
+
+async function fetchWithAuth(endpoint: string, options: RequestInit = {}, allowRetry = true) {
   const method = (options.method ?? 'GET').toUpperCase();
   const needsCsrf = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method);
   const csrfToken = needsCsrf ? getCookie('csrf_token') : null;
   
   const headers = {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
     ...options.headers,
   };
@@ -29,15 +49,39 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
     credentials: 'include',
   });
 
+  if (response.status === 401 && allowRetry && endpoint !== '/auth/refresh') {
+    if (!refreshPromise) {
+      refreshPromise = refreshSession().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    const refreshed = await refreshPromise;
+    if (refreshed) {
+      return fetchWithAuth(endpoint, options, false);
+    }
+
+    redirectToLogin();
+  }
+
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Error desconocido' }));
-    throw new Error(error.message || `Error: ${response.status}`);
+    const error = await response
+      .json()
+      .catch(() => ({ message: 'Error desconocido' }));
+    const message = Array.isArray(error.message)
+      ? error.message.join(', ')
+      : error.message || `Error: ${response.status}`;
+    throw new Error(message);
   }
 
   return response.json();
 }
 
 export const api = {
+  auth: {
+    me: () => fetchWithAuth('/auth/me'),
+    logout: () => fetchWithAuth('/auth/logout', { method: 'POST' }),
+  },
   reports: {
     getDashboard: () => fetchWithAuth('/reports/dashboard'),
     getCashClosing: () => fetchWithAuth('/reports/cash-closing'),
@@ -57,8 +101,14 @@ export const api = {
   inventory: {
     getMovements: () => fetchWithAuth('/inventory/movements'),
     create: (data: unknown) => fetchWithAuth('/inventory/movements', { method: 'POST', body: JSON.stringify(data) }),
+    listProducts: (branchId?: string) =>
+      fetchWithAuth(`/inventory/products${branchId ? `?branchId=${branchId}` : ''}`),
     getStock: (productId: string, branchId?: string) => 
       fetchWithAuth(`/inventory/stock/${productId}${branchId ? `?branchId=${branchId}` : ''}`),
+  },
+  geo: {
+    searchAddress: (q: string, countryCode?: string) =>
+      fetchWithAuth(`/geo/search?q=${encodeURIComponent(q)}${countryCode ? `&countryCode=${encodeURIComponent(countryCode)}` : ''}`),
   },
   customers: {
     findAll: () => fetchWithAuth('/customers'),

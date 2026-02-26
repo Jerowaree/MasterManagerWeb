@@ -8,69 +8,74 @@ datasource db {
 }
 
 model Company {
-  id           String              @id @default(uuid()) @db.Uuid
-  name         String
-  emailDomain  String
-  country      String
-  currency     String
-  timezone     String
-  plan         String
-  status       CompanyStatus       @default(active)
-  graceUntil   DateTime?
-  createdAt    DateTime            @default(now())
-  deletedAt    DateTime?
-  logs         AuditLog[]
-  branches     Branch[]
-  customers    Customer[]
-  movements    InventoryMovement[]
+  id            String              @id @default(uuid()) @db.Uuid
+  name          String
+  emailDomain   String
+  country       String
+  currency      String
+  timezone      String
+  plan          String
+  status        CompanyStatus       @default(active)
+  graceUntil    DateTime?
+  createdAt     DateTime            @default(now())
+  deletedAt     DateTime?
+  logs          AuditLog[]
+  branches      Branch[]
+  customers     Customer[]
+  movements     InventoryMovement[]
   productStocks ProductStock[]
-  payments     PaymentLog[]
-  purchases    Purchase[]
-  sales        Sale[]
-  saleItems    SaleItem[]
-  subscription Subscription?
-  suppliers    Supplier[]
-  users        User[]
+  payments      PaymentLog[]
+  purchases     Purchase[]
+  sales         Sale[]
+  saleItems     SaleItem[]
+  subscription  Subscription?
+  suppliers     Supplier[]
+  users         User[]
 
   @@index([createdAt])
 }
 
 model Branch {
-  id        String              @id @default(uuid()) @db.Uuid
-  companyId String              @db.Uuid
-  name      String
-  timezone  String
-  createdAt DateTime            @default(now())
-  deletedAt DateTime?
-  company   Company             @relation(fields: [companyId], references: [id])
-  customers Customer[]
-  movements InventoryMovement[]
+  id            String              @id @default(uuid()) @db.Uuid
+  companyId     String              @db.Uuid
+  name          String
+  address       String?
+  latitude      Decimal?            @db.Decimal(10, 7)
+  longitude     Decimal?            @db.Decimal(10, 7)
+  timezone      String
+  createdAt     DateTime            @default(now())
+  deletedAt     DateTime?
+  company       Company             @relation(fields: [companyId], references: [id])
+  customers     Customer[]
+  movements     InventoryMovement[]
   productStocks ProductStock[]
-  purchases Purchase[]
-  sales     Sale[]
-  users     User[]
+  purchases     Purchase[]
+  sales         Sale[]
+  users         User[]
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([createdAt])
 }
 
 model User {
-  id           String     @id @default(uuid()) @db.Uuid
-  companyId    String     @db.Uuid
-  branchId     String?    @db.Uuid
-  role         UserRole
-  email        String
-  passwordHash String
-  failedLoginAttempts Int      @default(0)
-  lockedUntil DateTime?
-  sessionVersion Int      @default(0)
-  refreshTokenHash String?
-  createdAt    DateTime   @default(now())
-  deletedAt    DateTime?
-  logs         AuditLog[]
-  branch       Branch?    @relation(fields: [branchId], references: [id])
-  company      Company    @relation(fields: [companyId], references: [id])
+  id                  String     @id @default(uuid()) @db.Uuid
+  companyId           String     @db.Uuid
+  branchId            String?    @db.Uuid
+  role                UserRole
+  email               String
+  passwordHash        String
+  failedLoginAttempts Int        @default(0)
+  lockedUntil         DateTime?
+  sessionVersion      Int        @default(0)
+  refreshTokenHash    String?
+  createdAt           DateTime   @default(now())
+  deletedAt           DateTime?
+  logs                AuditLog[]
+  branch              Branch?    @relation(fields: [companyId, branchId], references: [companyId, id])
+  company             Company    @relation(fields: [companyId], references: [id])
 
+  @@unique([companyId, id])
   @@unique([companyId, email])
   @@unique([email])
   @@index([companyId])
@@ -90,10 +95,11 @@ model Customer {
   address        String?
   createdAt      DateTime  @default(now())
   deletedAt      DateTime?
-  branch         Branch    @relation(fields: [branchId], references: [id])
+  branch         Branch    @relation(fields: [companyId, branchId], references: [companyId, id])
   company        Company   @relation(fields: [companyId], references: [id])
   sales          Sale[]
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([branchId])
   @@index([createdAt])
@@ -111,49 +117,52 @@ model Supplier {
   purchases Purchase[]
   company   Company    @relation(fields: [companyId], references: [id])
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([createdAt])
 }
 
 model Sale {
-  id         String    @id @default(uuid()) @db.Uuid
-  companyId  String    @db.Uuid
-  branchId   String    @db.Uuid
-  customerId String?   @db.Uuid
-  idempotencyKey String?
-  idempotencyHash String?
+  id                     String     @id @default(uuid()) @db.Uuid
+  companyId              String     @db.Uuid
+  branchId               String     @db.Uuid
+  customerId             String?    @db.Uuid
+  idempotencyKey         String?
+  idempotencyHash        String?
   idempotencyFirstSeenAt DateTime?
-  idempotencyLastSeenAt DateTime?
-  idempotencyReplayCount Int @default(0)
-  total      Decimal   @db.Decimal(12, 2)
-  status     String
-  createdAt  DateTime  @default(now())
-  deletedAt  DateTime?
-  branch     Branch    @relation(fields: [branchId], references: [id])
-  company    Company   @relation(fields: [companyId], references: [id])
-  customer   Customer? @relation(fields: [customerId], references: [id])
-  items      SaleItem[]
+  idempotencyLastSeenAt  DateTime?
+  idempotencyReplayCount Int        @default(0)
+  total                  Decimal    @db.Decimal(12, 2)
+  status                 String
+  createdAt              DateTime   @default(now())
+  deletedAt              DateTime?
+  branch                 Branch     @relation(fields: [companyId, branchId], references: [companyId, id])
+  company                Company    @relation(fields: [companyId], references: [id])
+  customer               Customer?  @relation(fields: [companyId, customerId], references: [companyId, id])
+  items                  SaleItem[]
 
+  @@unique([companyId, id])
+  @@unique([companyId, idempotencyKey])
   @@index([companyId])
   @@index([branchId])
   @@index([createdAt])
   @@index([companyId, status, deletedAt, createdAt])
   @@index([companyId, branchId, status, deletedAt, createdAt])
-  @@unique([companyId, idempotencyKey])
 }
 
 model SaleItem {
-  id        String   @id @default(uuid()) @db.Uuid
-  companyId String   @db.Uuid
-  saleId    String   @db.Uuid
+  id        String    @id @default(uuid()) @db.Uuid
+  companyId String    @db.Uuid
+  saleId    String    @db.Uuid
   productId String
-  quantity  Decimal  @db.Decimal(12, 2)
-  unitPrice Decimal  @db.Decimal(12, 2)
-  createdAt DateTime @default(now())
+  quantity  Decimal   @db.Decimal(12, 2)
+  unitPrice Decimal   @db.Decimal(12, 2)
+  createdAt DateTime  @default(now())
   deletedAt DateTime?
-  company   Company  @relation(fields: [companyId], references: [id])
-  sale      Sale     @relation(fields: [saleId], references: [id])
+  company   Company   @relation(fields: [companyId], references: [id])
+  sale      Sale      @relation(fields: [saleId], references: [id])
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([saleId])
   @@index([productId])
@@ -169,10 +178,11 @@ model Purchase {
   status     String
   createdAt  DateTime  @default(now())
   deletedAt  DateTime?
-  branch     Branch    @relation(fields: [branchId], references: [id])
+  branch     Branch    @relation(fields: [companyId, branchId], references: [companyId, id])
   company    Company   @relation(fields: [companyId], references: [id])
   supplier   Supplier? @relation(fields: [supplierId], references: [id])
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([branchId])
   @@index([createdAt])
@@ -188,9 +198,10 @@ model InventoryMovement {
   unitCost  Decimal      @db.Decimal(12, 2)
   createdAt DateTime     @default(now())
   deletedAt DateTime?
-  branch    Branch       @relation(fields: [branchId], references: [id])
+  branch    Branch       @relation(fields: [companyId, branchId], references: [companyId, id])
   company   Company      @relation(fields: [companyId], references: [id])
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([branchId])
   @@index([createdAt])
@@ -207,8 +218,9 @@ model ProductStock {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   company   Company  @relation(fields: [companyId], references: [id])
-  branch    Branch   @relation(fields: [branchId], references: [id])
+  branch    Branch   @relation(fields: [companyId, branchId], references: [companyId, id])
 
+  @@unique([companyId, id])
   @@unique([companyId, branchId, productId])
   @@index([companyId])
   @@index([branchId])
@@ -226,6 +238,7 @@ model Subscription {
   deletedAt        DateTime?
   company          Company       @relation(fields: [companyId], references: [id])
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([createdAt])
 }
@@ -242,6 +255,7 @@ model PaymentLog {
   deletedAt  DateTime?
   company    Company   @relation(fields: [companyId], references: [id])
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([createdAt])
 }
@@ -259,6 +273,7 @@ model AuditLog {
   company      Company  @relation(fields: [companyId], references: [id])
   user         User     @relation(fields: [userId], references: [id])
 
+  @@unique([companyId, id])
   @@index([companyId])
   @@index([createdAt])
 }

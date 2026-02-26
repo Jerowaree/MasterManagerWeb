@@ -56,7 +56,7 @@ export default function SettingsPage() {
     timezone: '',
   });
   const { showToast } = useToast();
-  const { user, login, token } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -189,19 +189,7 @@ export default function SettingsPage() {
         await loadProfile();
         await loadCompanyUsers();
 
-        if (profile && token) {
-          const profileResponse = await api.users.getProfile();
-          if (profileResponse.success) {
-            const refreshedProfile = profileResponse.data as ProfileData;
-            login(token, {
-              id: refreshedProfile.id,
-              email: refreshedProfile.email,
-              companyId: refreshedProfile.company.id,
-              branchId: user?.branchId,
-              role: refreshedProfile.role,
-            });
-          }
-        }
+        await refreshUser();
         return true;
       }
       return false;

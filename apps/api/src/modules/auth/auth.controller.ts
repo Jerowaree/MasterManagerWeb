@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
   HttpCode,
@@ -141,5 +142,19 @@ export class AuthController {
     await this.authService.logout(req.user.id);
     this.clearAuthCookies(res);
     return { message: 'Sesion cerrada' };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @HttpCode(HttpStatus.OK)
+  me(@Req() req: any) {
+    return {
+      id: req.user.id,
+      email: req.user.email,
+      companyId: req.user.companyId,
+      branchId: req.user.branchId,
+      role: req.user.role,
+    };
   }
 }

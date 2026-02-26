@@ -31,7 +31,18 @@ export class AuthService {
       });
 
       if (existingUser) {
-        throw new ConflictException('User already exists');
+        await this.securityEvents.emit({
+          code: 'auth_register_email_conflict',
+          severity: 'medium',
+          message: 'Intento de registro con correo existente',
+          metadata: {
+            domain: email.includes('@') ? email.split('@')[1] : 'invalid',
+          },
+        });
+
+        // Normalize timing to make user enumeration less reliable.
+        await bcrypt.hash(password, 12);
+        throw new ConflictException('No se pudo completar el registro');
       }
 
       const passwordHash = await bcrypt.hash(password, 12);

@@ -18,10 +18,12 @@ import { ReportsModule } from "./modules/reports/reports.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { PeruModule } from "./modules/peru/peru.module";
 import { SecurityModule } from "./modules/security/security.module";
+import { GeoModule } from "./modules/geo/geo.module";
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { CsrfMiddleware } from './common/middlewares/csrf.middleware';
+import { SubscriptionGuard } from './common/guards/subscription.guard';
 
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -44,9 +46,11 @@ import { ScheduleModule } from '@nestjs/schedule';
     NotificationsModule,
     PeruModule,
     SecurityModule,
+    GeoModule,
   ],
   controllers: [AppController],
   providers: [
+    SubscriptionGuard,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

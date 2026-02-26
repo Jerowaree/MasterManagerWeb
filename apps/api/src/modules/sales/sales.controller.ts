@@ -16,9 +16,10 @@ import { UpdateSaleDto } from './dto/update-sale.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { SubscriptionGuard } from '../../common/guards/subscription.guard';
 
 @Controller('sales')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, SubscriptionGuard, RolesGuard)
 export class SalesController {
   constructor(private readonly salesService: SalesService) {}
 
@@ -34,25 +35,25 @@ export class SalesController {
 
   @Get()
   @Roles('owner', 'admin', 'employee', 'superadmin')
-  findAll() {
-    return this.salesService.findAll();
+  findAll(@Request() req: any) {
+    return this.salesService.findAll(req.user);
   }
 
   @Get(':id')
   @Roles('owner', 'admin', 'employee', 'superadmin')
-  findOne(@Param('id') id: string) {
-    return this.salesService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req: any) {
+    return this.salesService.findOne(id, req.user);
   }
 
   @Patch(':id')
   @Roles('owner', 'admin', 'superadmin')
-  update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto) {
-    return this.salesService.update(id, updateSaleDto);
+  update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto, @Request() req: any) {
+    return this.salesService.update(id, updateSaleDto, req.user);
   }
 
   @Delete(':id')
   @Roles('owner', 'admin', 'superadmin')
-  remove(@Param('id') id: string) {
-    return this.salesService.remove(id);
+  remove(@Param('id') id: string, @Request() req: any) {
+    return this.salesService.remove(id, req.user);
   }
 }

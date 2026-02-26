@@ -1,44 +1,33 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { 
   ArrowUpRight, 
   ArrowDownRight, 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/auth-context';
 import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
+import { DashboardData, Sale } from '@/lib/dashboard-types';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
   const { showToast } = useToast();
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['reports', 'dashboard'],
+    queryFn: async () => {
+      const response = await api.reports.getDashboard();
+      return response.data as DashboardData;
+    },
+  });
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const response = await api.reports.getDashboard();
-        if (response.success) {
-          setData(response.data);
-        }
-      } catch (err: any) {
-        showToast(err.message || 'Error al cargar dashboard', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      loadDashboard();
-    } else {
-      // Si no hay usuario después de cargar el contexto, detenemos el spinner
-      setLoading(false);
+    if (error instanceof Error) {
+      showToast(error.message || 'Error al cargar dashboard', 'error');
     }
-  }, [user, showToast]);
+  }, [error, showToast]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
@@ -89,7 +78,7 @@ export default function DashboardPage() {
             <button className="text-sm font-bold text-[#7c3aed] hover:underline">Ver todas las ventas</button>
           </div>
           <div className="space-y-6">
-            {recentSales.length > 0 ? recentSales.map((sale: any) => (
+            {recentSales.length > 0 ? recentSales.map((sale: Sale) => (
               <TransactionItem 
                 key={sale.id}
                 client={sale.customer?.name || 'Venta Rápida'} 
@@ -128,7 +117,14 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ title, value, trend, positive }: any) {
+type StatCardProps = {
+  title: string;
+  value: string | number;
+  trend: string;
+  positive: boolean;
+};
+
+function StatCard({ title, value, trend, positive }: StatCardProps) {
   return (
     <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-2 hover:shadow-md transition-shadow">
       <div className="text-gray-500 text-sm font-medium">{title}</div>
@@ -146,7 +142,14 @@ function StatCard({ title, value, trend, positive }: any) {
   );
 }
 
-function TransactionItem({ client, amount, status, time }: any) {
+type TransactionItemProps = {
+  client: string;
+  amount: string;
+  status: string;
+  time: string;
+};
+
+function TransactionItem({ client, amount, status, time }: TransactionItemProps) {
   return (
     <div className="flex items-center justify-between group">
       <div className="flex items-center gap-4">
@@ -168,3 +171,4 @@ function TransactionItem({ client, amount, status, time }: any) {
     </div>
   );
 }
+

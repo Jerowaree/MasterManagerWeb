@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 import { AuthProvider } from "../contexts/auth-context";
 import { CompanyProvider } from "../contexts/company-context";
 import { ToastProvider } from "../contexts/ToastContext";
+import { AppQueryProvider } from "../contexts/query-provider";
 
 export default function RootLayout({
   children
@@ -24,13 +25,15 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${GeistSans.variable} ${outfit.variable}`}>
       <body className="antialiased font-sans tabular-nums">
-        <ToastProvider>
-          <AuthProvider>
-            <CompanyProvider>
-              {children}
-            </CompanyProvider>
-          </AuthProvider>
-        </ToastProvider>
+        <AppQueryProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <CompanyProvider>
+                {children}
+              </CompanyProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </AppQueryProvider>
       </body>
     </html>
   );

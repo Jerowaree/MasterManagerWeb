@@ -8,8 +8,16 @@ export class BranchesService {
   constructor(private prisma: PrismaService) {}
 
   async create(createBranchDto: CreateBranchDto) {
+    const data = {
+      name: createBranchDto.name.trim(),
+      timezone: createBranchDto.timezone.trim(),
+      address: createBranchDto.address?.trim() || null,
+      latitude: createBranchDto.latitude ?? null,
+      longitude: createBranchDto.longitude ?? null,
+    };
+
     return this.prisma.client.branch.create({
-      data: createBranchDto,
+      data,
     });
   }
 
@@ -28,9 +36,17 @@ export class BranchesService {
   }
 
   async update(id: string, updateBranchDto: UpdateBranchDto) {
+    const data = {
+      ...(updateBranchDto.name !== undefined ? { name: updateBranchDto.name.trim() } : {}),
+      ...(updateBranchDto.timezone !== undefined ? { timezone: updateBranchDto.timezone.trim() } : {}),
+      ...(updateBranchDto.address !== undefined ? { address: updateBranchDto.address?.trim() || null } : {}),
+      ...(updateBranchDto.latitude !== undefined ? { latitude: updateBranchDto.latitude } : {}),
+      ...(updateBranchDto.longitude !== undefined ? { longitude: updateBranchDto.longitude } : {}),
+    };
+
     return this.prisma.client.branch.update({
       where: { id },
-      data: updateBranchDto,
+      data,
     });
   }
 

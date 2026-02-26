@@ -10,6 +10,11 @@ import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 import { SaleStatus } from '../../common/types/enums';
 import { tenantStorage } from '../../common/store/tenant.store';
+import {
+  ActorContext,
+  assertActorBranchScope,
+  resolveActorBranchFilter,
+} from '../../common/utils/branch-access.utils';
 
 @Injectable()
 export class SalesService {
@@ -46,16 +51,35 @@ export class SalesService {
     return new Date(now.getTime() - this.idempotencyTtlMinutes * 60 * 1000);
   }
 
+  private resolveCompanyId(actor: ActorContext) {
+    const context = tenantStorage.getStore();
+    const contextCompanyId = context?.companyId;
+
+    if (!actor.companyId) {
+      throw new BadRequestException('Usuario autenticado sin contexto de empresa');
+    }
+
+    if (contextCompanyId && contextCompanyId !== actor.companyId) {
+      throw new BadRequestException('Contexto de tenant inconsistente');
+    }
+
+    return actor.companyId;
+  }
+
   async create(
     createSaleDto: CreateSaleDto,
-    actor: { companyId: string; branchId?: string; role: string },
+    actor: ActorContext,
     idempotencyKey?: string
   ) {
+    const companyId = this.resolveCompanyId(actor);
+    assertActorBranchScope(actor, createSaleDto.branchId);
+
     const normalizedIdempotencyKey = idempotencyKey?.trim();
+    const effectiveStatus = createSaleDto.status ?? SaleStatus.PAID;
     const requestHash = this.computeRequestHash({
       branchId: createSaleDto.branchId,
       customerId: createSaleDto.customerId ?? null,
-      status: createSaleDto.status,
+      status: effectiveStatus,
       total: createSaleDto.total ?? null,
       items: (createSaleDto.items ?? []).map((i) => ({
         productId: i.productId,
@@ -69,7 +93,7 @@ export class SalesService {
     if (normalizedIdempotencyKey) {
       const existing = await this.prisma.client.sale.findFirst({
         where: {
-          companyId: actor.companyId,
+          companyId,
           idempotencyKey: normalizedIdempotencyKey,
           deletedAt: null,
         },
@@ -79,7 +103,7 @@ export class SalesService {
       if (existing) {
         if (existing.idempotencyHash && existing.idempotencyHash !== requestHash) {
           this.logger.warn(
-            `idempotency_mismatch company=${actor.companyId} key=${normalizedIdempotencyKey}`
+            `idempotency_mismatch company=${companyId} key=${normalizedIdempotencyKey}`
           );
           throw new ConflictException(
             'La idempotency-key ya fue usada con un payload distinto'
@@ -88,7 +112,7 @@ export class SalesService {
 
         if (existing.createdAt < cutoff) {
           this.logger.warn(
-            `idempotency_expired company=${actor.companyId} key=${normalizedIdempotencyKey}`
+            `idempotency_expired company=${companyId} key=${normalizedIdempotencyKey}`
           );
           throw new ConflictException(
             `La idempotency-key expiro (TTL ${this.idempotencyTtlMinutes} min). Usa una nueva.`
@@ -103,7 +127,7 @@ export class SalesService {
           },
         });
         this.logger.log(
-          `idempotency_replay company=${actor.companyId} key=${normalizedIdempotencyKey} saleId=${existing.id}`
+          `idempotency_replay company=${companyId} key=${normalizedIdempotencyKey} saleId=${existing.id}`
         );
         return existing;
       }
@@ -112,7 +136,7 @@ export class SalesService {
     const branch = await this.prisma.client.branch.findFirst({
       where: {
         id: createSaleDto.branchId,
-        companyId: actor.companyId,
+        companyId,
         deletedAt: null,
       },
       select: { id: true },
@@ -126,7 +150,7 @@ export class SalesService {
       const customer = await this.prisma.client.customer.findFirst({
         where: {
           id: createSaleDto.customerId,
-          companyId: actor.companyId,
+          companyId,
           deletedAt: null,
         },
         select: { id: true },
@@ -168,40 +192,41 @@ export class SalesService {
     }
 
     return this.prisma.client.$transaction(async (tx: any) => {
-      return tenantStorage.run({ companyId: actor.companyId }, async () => {
-        if (sanitizedItems.length > 0 && createSaleDto.status === SaleStatus.PAID) {
-          const requestedByProduct = sanitizedItems.reduce((acc, item) => {
-            acc.set(item.productId, (acc.get(item.productId) ?? 0) + item.quantity);
-            return acc;
-          }, new Map<string, number>());
+      return tenantStorage.run({ companyId }, async () => {
+        const requestedByProduct = sanitizedItems.reduce((acc, item) => {
+          acc.set(item.productId, (acc.get(item.productId) ?? 0) + item.quantity);
+          return acc;
+        }, new Map<string, number>());
 
-          const productIds = [...requestedByProduct.keys()];
+        const productIds = [...requestedByProduct.keys()];
+        const availableByProduct = new Map<string, number>();
+
+        if (productIds.length > 0) {
           const snapshots = await tx.productStock.findMany({
             where: {
-              companyId: actor.companyId,
+              companyId,
               branchId: createSaleDto.branchId,
               productId: { in: productIds },
             },
             select: { productId: true, quantity: true },
           });
 
-          const availableByProduct = new Map<string, number>(
-            snapshots.map((s: { productId: string; quantity: number }) => [
-              s.productId,
-              Number(s.quantity),
-            ])
-          );
+          snapshots.forEach((s: { productId: string; quantity: number }) => {
+            availableByProduct.set(s.productId, Number(s.quantity));
+          });
 
           for (const productId of productIds) {
             if (!availableByProduct.has(productId)) {
-              throw new NotFoundException(`Producto no encontrado: ${productId}`);
+              throw new NotFoundException(`Producto no encontrado en inventario: ${productId}`);
             }
           }
+        }
 
+        if (effectiveStatus === SaleStatus.PAID) {
           for (const [productId, requestedQty] of requestedByProduct.entries()) {
             const decremented = await tx.productStock.updateMany({
               where: {
-                companyId: actor.companyId,
+                companyId,
                 branchId: createSaleDto.branchId,
                 productId,
                 quantity: { gte: requestedQty },
@@ -226,7 +251,7 @@ export class SalesService {
             branchId: createSaleDto.branchId,
             customerId: createSaleDto.customerId,
             total: effectiveTotal,
-            status: createSaleDto.status ?? SaleStatus.PAID,
+            status: effectiveStatus,
             idempotencyKey: normalizedIdempotencyKey || null,
             idempotencyHash: normalizedIdempotencyKey ? requestHash : null,
             idempotencyFirstSeenAt: normalizedIdempotencyKey ? now : null,
@@ -235,7 +260,7 @@ export class SalesService {
               sanitizedItems.length > 0
                 ? {
                     create: sanitizedItems.map((item) => ({
-                      companyId: actor.companyId,
+                      companyId,
                       productId: item.productId,
                       quantity: item.quantity,
                       unitPrice: item.unitPrice,
@@ -246,7 +271,7 @@ export class SalesService {
           include: { items: true, customer: true, branch: true },
         });
 
-          if (sanitizedItems.length > 0 && sale.status === SaleStatus.PAID) {
+          if (sanitizedItems.length > 0 && effectiveStatus === SaleStatus.PAID) {
             for (const item of sanitizedItems) {
               await tx.inventoryMovement.create({
                 data: {
@@ -265,7 +290,7 @@ export class SalesService {
           if (normalizedIdempotencyKey && error?.code === 'P2002') {
             const existing = await tx.sale.findFirst({
               where: {
-                companyId: actor.companyId,
+                companyId,
                 idempotencyKey: normalizedIdempotencyKey,
                 deletedAt: null,
               },
@@ -290,7 +315,7 @@ export class SalesService {
                 },
               });
               this.logger.log(
-                `idempotency_replay_race company=${actor.companyId} key=${normalizedIdempotencyKey} saleId=${existing.id}`
+                `idempotency_replay_race company=${companyId} key=${normalizedIdempotencyKey} saleId=${existing.id}`
               );
               return existing;
             }
@@ -305,20 +330,31 @@ export class SalesService {
     });
   }
 
-  async findAll() {
+  async findAll(actor: ActorContext) {
+    const branchId = resolveActorBranchFilter(actor);
+
     return this.prisma.client.sale.findMany({
       include: {
         customer: true,
         branch: true,
         items: true,
       },
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(branchId ? { branchId } : {}),
+      },
     });
   }
 
-  async findOne(id: string) {
-    const sale = await this.prisma.client.sale.findUnique({
-      where: { id },
+  async findOne(id: string, actor: ActorContext) {
+    const branchId = resolveActorBranchFilter(actor);
+
+    const sale = await this.prisma.client.sale.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        ...(branchId ? { branchId } : {}),
+      },
       include: {
         customer: true,
         branch: true,
@@ -326,18 +362,32 @@ export class SalesService {
       },
     });
 
-    if (!sale || sale.deletedAt) {
+    if (!sale) {
       throw new NotFoundException('Venta no encontrada');
     }
 
     return sale;
   }
 
-  async update(id: string, updateSaleDto: UpdateSaleDto) {
+  async update(id: string, updateSaleDto: UpdateSaleDto, actor: ActorContext) {
+    await this.findOne(id, actor);
+
+    if (updateSaleDto.items !== undefined || updateSaleDto.total !== undefined) {
+      throw new BadRequestException('No se permite editar items o total de una venta existente');
+    }
+
+    if (updateSaleDto.branchId !== undefined || updateSaleDto.customerId !== undefined) {
+      throw new BadRequestException(
+        'No se permite editar sucursal o cliente de una venta existente',
+      );
+    }
+
     try {
       return await this.prisma.client.sale.update({
         where: { id },
-        data: updateSaleDto,
+        data: {
+          ...(updateSaleDto.status !== undefined ? { status: updateSaleDto.status } : {}),
+        },
       });
     } catch (error: any) {
       if (error?.code === 'P2025') {
@@ -347,7 +397,9 @@ export class SalesService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, actor: ActorContext) {
+    await this.findOne(id, actor);
+
     try {
       return await this.prisma.client.sale.update({
         where: { id },

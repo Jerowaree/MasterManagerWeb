@@ -20,6 +20,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterFormData } from '@/lib/validations';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
 import { PasswordStrengthHint } from '@/components/forms/PasswordStrengthHint';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -37,6 +38,7 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [submissionStartedAt] = useState<number>(() => Date.now());
   const { showToast } = useToast();
+  const { login } = useAuth();
 
   const {
     register,
@@ -86,6 +88,10 @@ export default function RegisterPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        if (result?.data?.id) {
+          login(result.data);
+        }
         showToast('¡Cuenta creada exitosamente!', 'success');
         setSuccess(true);
         setTimeout(() => {
@@ -410,3 +416,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

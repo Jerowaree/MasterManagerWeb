@@ -5,9 +5,10 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateCompanyUserDto } from './dto/create-company-user.dto';
+import { SubscriptionGuard } from '../../common/guards/subscription.guard';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, SubscriptionGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
