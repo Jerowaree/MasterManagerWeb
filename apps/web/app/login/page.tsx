@@ -3,9 +3,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Mail, 
-  Lock, 
-  ShieldCheck,
+  Mail,
+  Lock,
   ChevronRight,
   Users,
   Eye,

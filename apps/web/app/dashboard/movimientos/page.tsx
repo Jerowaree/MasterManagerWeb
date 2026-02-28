@@ -91,10 +91,10 @@ export default function MovimientosPage() {
     }) => api.inventory.create(payload),
   });
 
-  const movements = movementsQuery.data?.items ?? [];
+  const movements = useMemo(() => movementsQuery.data?.items ?? [], [movementsQuery.data]);
   const movementsPagination = movementsQuery.data?.meta;
-  const branches = branchesQuery.data ?? [];
-  const products = productsQuery.data ?? [];
+  const branches = useMemo(() => branchesQuery.data ?? [], [branchesQuery.data]);
+  const products = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
   const isSubmitting = createMovementMutation.isPending;
   const loading = movementsQuery.isLoading || branchesQuery.isLoading;
 

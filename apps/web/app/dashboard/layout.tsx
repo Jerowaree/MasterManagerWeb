@@ -12,7 +12,9 @@ import {
   LogOut,
   Bell,
   Search,
-  LucideIcon
+  LucideIcon,
+  Truck,
+  Wallet,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -70,6 +72,8 @@ export default function DashboardLayout({
           <SidebarItem icon={ArrowRightLeft} label="Movimientos" href="/dashboard/movimientos" active={pathname === '/dashboard/movimientos'} />
           <SidebarItem icon={Building2} label="Sucursales" href="/dashboard/sucursales" active={pathname === '/dashboard/sucursales'} />
           <SidebarItem icon={Users} label="Clientes" href="/dashboard/clientes" active={pathname === '/dashboard/clientes'} />
+          <SidebarItem icon={Truck} label="Proveedores" href="/dashboard/proveedores" active={pathname === '/dashboard/proveedores'} />
+          <SidebarItem icon={Wallet} label="Caja" href="/dashboard/caja" active={pathname === '/dashboard/caja'} />
         </nav>
 
         <div className="pt-6 border-t border-white/10 space-y-2">

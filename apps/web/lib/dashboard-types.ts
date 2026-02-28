@@ -155,3 +155,44 @@ export type SunatDocument = {
     name: string;
   } | null;
 };
+
+export type Supplier = {
+  id: string;
+  name: string;
+  tradeName?: string | null;
+  documentType?: string | null;
+  documentNumber?: string | null;
+  ruc?: string | null;
+  status?: 'active' | 'inactive' | string | null;
+  isRetentionAgent?: boolean | null;
+  appliesDetraction?: boolean | null;
+  taxRegime?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  department?: string | null;
+  province?: string | null;
+  district?: string | null;
+  paymentCondition?: 'cash' | 'credit' | string | null;
+  creditDays?: number | null;
+  currency?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankCci?: string | null;
+  bankAccountType?: string | null;
+  category?: string | null;
+  tags?: string[] | null;
+  createdAt: string;
+};
+
+export type CashMovement = {
+  id: string;
+  type: string;
+  amount: number;
+  description?: string | null;
+  reference?: string | null;
+  createdAt: string;
+  branch?: {
+    name?: string | null;
+  } | null;
+};

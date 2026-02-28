@@ -24,8 +24,8 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { CsrfMiddleware } from './common/middlewares/csrf.middleware';
 import { SubscriptionGuard } from './common/guards/subscription.guard';
-
 import { ScheduleModule } from '@nestjs/schedule';
+import { CashModule } from "./modules/cash/cash.module";
 
 @Module({
   imports: [
@@ -47,6 +47,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     PeruModule,
     SecurityModule,
     GeoModule,
+    CashModule,
   ],
   controllers: [AppController],
   providers: [

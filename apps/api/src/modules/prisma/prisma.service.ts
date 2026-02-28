@@ -16,7 +16,8 @@ const TENANT_MODELS = [
   'ElectronicDocument',
   'Subscription', 
   'PaymentLog', 
-  'AuditLog'
+  'AuditLog',
+  'CashMovement'
 ];
 
 @Injectable()

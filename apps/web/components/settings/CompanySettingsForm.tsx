@@ -8,6 +8,7 @@ import {
   CompanySettingsFormValues,
 } from './settings-validators';
 import { Loader2, Save } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Props = {
   initialValues: CompanySettingsFormValues;
@@ -76,8 +77,13 @@ export function CompanySettingsForm({
             type="text"
             {...register('emailDomain')}
             placeholder="pepito.com"
-            className="w-full px-5 py-3 bg-gray-100 text-gray-500 rounded-2xl font-bold text-sm cursor-not-allowed"
-            disabled={true}
+            className={cn(
+              "w-full px-5 py-3 rounded-2xl font-bold text-sm",
+              canEditEmailDomain
+                ? "bg-gray-50 border-gray-100 focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed]"
+                : "bg-gray-100 text-gray-500 cursor-not-allowed"
+            )}
+            disabled={!canEditEmailDomain || disabled}
           />
           {errors.emailDomain && <p className="text-xs text-red-500">{errors.emailDomain.message}</p>}
           <p className="text-xs text-gray-500">El dominio se genera automaticamente del nombre comercial.</p>

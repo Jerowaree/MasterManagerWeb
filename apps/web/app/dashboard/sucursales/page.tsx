@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Building2, Plus, Clock, Globe, Save, Loader2, MapPin } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
@@ -48,7 +48,7 @@ export default function SucursalesPage() {
     [isModalOpen, formData.address]
   );
 
-  const loadBranches = async (page: number) => {
+  const loadBranches = useCallback(async (page: number) => {
     try {
       setLoading(true);
       const response = await api.branches.findAll({ page, limit: branchesPageSize });
@@ -62,11 +62,11 @@ export default function SucursalesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [branchesPageSize, showToast]);
 
   useEffect(() => {
     loadBranches(branchesPage);
-  }, [branchesPage]);
+  }, [branchesPage, loadBranches]);
 
   useEffect(() => {
     if (!canSearchAddress) {

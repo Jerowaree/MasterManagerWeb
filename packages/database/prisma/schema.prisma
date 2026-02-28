@@ -8,47 +8,48 @@ datasource db {
 }
 
 model Company {
-  id            String              @id @default(uuid()) @db.Uuid
-  name          String
-  emailDomain   String
-  country       String
-  currency      String
-  timezone      String
-  plan          String
-  status        CompanyStatus       @default(active)
-  graceUntil    DateTime?
-  createdAt     DateTime            @default(now())
-  deletedAt     DateTime?
-  logs          AuditLog[]
-  branches      Branch[]
-  customers     Customer[]
-  movements     InventoryMovement[]
-  productStocks ProductStock[]
-  products      Product[]
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String
+  emailDomain         String
+  country             String
+  currency            String
+  timezone            String
+  plan                String
+  status              CompanyStatus        @default(active)
+  graceUntil          DateTime?
+  createdAt           DateTime             @default(now())
+  deletedAt           DateTime?
+  logs                AuditLog[]
+  branches            Branch[]
+  customers           Customer[]
+  movements           InventoryMovement[]
+  productStocks       ProductStock[]
+  products            Product[]
   electronicDocuments ElectronicDocument[]
-  payments      PaymentLog[]
-  purchases     Purchase[]
-  sales         Sale[]
-  saleItems     SaleItem[]
-  subscription  Subscription?
-  suppliers     Supplier[]
-  users         User[]
+  payments            PaymentLog[]
+  purchases           Purchase[]
+  sales               Sale[]
+  saleItems           SaleItem[]
+  subscription        Subscription?
+  suppliers           Supplier[]
+  users               User[]
+  cashMovements       CashMovement[]
 
   @@index([createdAt])
 }
 
 model Product {
-  id        String   @id @default(uuid()) @db.Uuid
-  companyId String   @db.Uuid
+  id        String    @id @default(uuid()) @db.Uuid
+  companyId String    @db.Uuid
   productId String
   name      String
   category  String
-  price     Decimal  @db.Decimal(12, 2)
-  minStock  Decimal  @default(0) @db.Decimal(12, 2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  price     Decimal   @db.Decimal(12, 2)
+  minStock  Decimal   @default(0) @db.Decimal(12, 2)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-  company   Company  @relation(fields: [companyId], references: [id])
+  company   Company   @relation(fields: [companyId], references: [id])
 
   @@unique([companyId, id])
   @@unique([companyId, productId])
@@ -59,23 +60,24 @@ model Product {
 }
 
 model Branch {
-  id            String              @id @default(uuid()) @db.Uuid
-  companyId     String              @db.Uuid
-  name          String
-  address       String?
-  latitude      Decimal?            @db.Decimal(10, 7)
-  longitude     Decimal?            @db.Decimal(10, 7)
-  timezone      String
-  createdAt     DateTime            @default(now())
-  deletedAt     DateTime?
-  company       Company             @relation(fields: [companyId], references: [id])
-  customers     Customer[]
-  movements     InventoryMovement[]
-  productStocks ProductStock[]
+  id                  String               @id @default(uuid()) @db.Uuid
+  companyId           String               @db.Uuid
+  name                String
+  address             String?
+  latitude            Decimal?             @db.Decimal(10, 7)
+  longitude           Decimal?             @db.Decimal(10, 7)
+  timezone            String
+  createdAt           DateTime             @default(now())
+  deletedAt           DateTime?
+  company             Company              @relation(fields: [companyId], references: [id])
+  customers           Customer[]
+  movements           InventoryMovement[]
+  productStocks       ProductStock[]
   electronicDocuments ElectronicDocument[]
-  purchases     Purchase[]
-  sales         Sale[]
-  users         User[]
+  purchases           Purchase[]
+  sales               Sale[]
+  users               User[]
+  cashMovements       CashMovement[]
 
   @@unique([companyId, id])
   @@index([companyId])
@@ -130,39 +132,60 @@ model Customer {
 }
 
 model Supplier {
-  id        String     @id @default(uuid()) @db.Uuid
-  companyId String     @db.Uuid
-  name      String
-  ruc       String
-  phone     String?
-  email     String?
-  createdAt DateTime   @default(now())
-  deletedAt DateTime?
-  purchases Purchase[]
-  company   Company    @relation(fields: [companyId], references: [id])
+  id                String         @id @default(uuid()) @db.Uuid
+  companyId         String         @db.Uuid
+  name              String
+  tradeName         String?
+  documentType      String?
+  documentNumber    String?
+  ruc               String?
+  status            SupplierStatus @default(active)
+  isRetentionAgent  Boolean        @default(false)
+  appliesDetraction Boolean        @default(false)
+  taxRegime         String?
+  phone             String?
+  email             String?
+  address           String?
+  department        String?
+  province          String?
+  district          String?
+  paymentCondition  String?        @default("cash")
+  creditDays        Int?
+  currency          String?        @default("PEN")
+  bankName          String?
+  bankAccountNumber String?
+  bankCci           String?
+  bankAccountType   String?
+  category          String?
+  tags              String[]
+  createdAt         DateTime       @default(now())
+  deletedAt         DateTime?
+  purchases         Purchase[]
+  company           Company        @relation(fields: [companyId], references: [id])
 
   @@unique([companyId, id])
   @@index([companyId])
   @@index([createdAt])
+  @@index([documentType, documentNumber])
 }
 
 model Sale {
-  id                     String     @id @default(uuid()) @db.Uuid
-  companyId              String     @db.Uuid
-  branchId               String     @db.Uuid
-  customerId             String?    @db.Uuid
+  id                     String               @id @default(uuid()) @db.Uuid
+  companyId              String               @db.Uuid
+  branchId               String               @db.Uuid
+  customerId             String?              @db.Uuid
   idempotencyKey         String?
   idempotencyHash        String?
   idempotencyFirstSeenAt DateTime?
   idempotencyLastSeenAt  DateTime?
-  idempotencyReplayCount Int        @default(0)
-  total                  Decimal    @db.Decimal(12, 2)
+  idempotencyReplayCount Int                  @default(0)
+  total                  Decimal              @db.Decimal(12, 2)
   status                 String
-  createdAt              DateTime   @default(now())
+  createdAt              DateTime             @default(now())
   deletedAt              DateTime?
-  branch                 Branch     @relation(fields: [companyId, branchId], references: [companyId, id])
-  company                Company    @relation(fields: [companyId], references: [id])
-  customer               Customer?  @relation(fields: [companyId, customerId], references: [companyId, id])
+  branch                 Branch               @relation(fields: [companyId, branchId], references: [companyId, id])
+  company                Company              @relation(fields: [companyId], references: [id])
+  customer               Customer?            @relation(fields: [companyId, customerId], references: [companyId, id])
   items                  SaleItem[]
   electronicDocuments    ElectronicDocument[]
 
@@ -334,6 +357,25 @@ model AuditLog {
   @@index([createdAt])
 }
 
+model CashMovement {
+  id          String    @id @default(uuid()) @db.Uuid
+  companyId   String    @db.Uuid
+  branchId    String    @db.Uuid
+  type        String
+  amount      Decimal   @db.Decimal(12, 2)
+  description String?
+  reference   String?
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+  branch      Branch    @relation(fields: [companyId, branchId], references: [companyId, id])
+  company     Company   @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, id])
+  @@index([companyId])
+  @@index([branchId])
+  @@index([createdAt])
+}
+
 enum CompanyStatus {
   active
   grace
@@ -365,4 +407,9 @@ enum ElectronicDocumentStatus {
   rejected
   error
   not_applicable
+}
+
+enum SupplierStatus {
+  active
+  inactive
 }

@@ -162,10 +162,26 @@ export const api = {
       fetchWithAuth(`/customers${buildQueryString({ page: params?.page, limit: params?.limit })}`),
     create: (data: unknown) => fetchWithAuth('/customers', { method: 'POST', body: JSON.stringify(data) }),
   },
+  suppliers: {
+    findAll: (params?: PaginationParams) =>
+      fetchWithAuth(`/suppliers${buildQueryString({ page: params?.page, limit: params?.limit })}`),
+    create: (data: unknown) => fetchWithAuth('/suppliers', { method: 'POST', body: JSON.stringify(data) }),
+  },
   branches: {
     findAll: (params?: PaginationParams) =>
       fetchWithAuth(`/branches${buildQueryString({ page: params?.page, limit: params?.limit })}`),
     create: (data: unknown) => fetchWithAuth('/branches', { method: 'POST', body: JSON.stringify(data) }),
+  },
+  cash: {
+    findAll: (branchId?: string, params?: PaginationParams) =>
+      fetchWithAuth(
+        `/cash${buildQueryString({
+          branchId,
+          page: params?.page,
+          limit: params?.limit,
+        })}`,
+      ),
+    create: (data: unknown) => fetchWithAuth('/cash', { method: 'POST', body: JSON.stringify(data) }),
   },
   users: {
     getProfile: () => fetchWithAuth('/users/profile'),

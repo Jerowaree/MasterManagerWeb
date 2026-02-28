@@ -28,6 +28,19 @@ export default function ClientesPage() {
     address: '',
   });
 
+  const normalizeCustomerPayload = () => {
+    const name = formData.name.trim();
+    const documentNumber = formData.documentNumber.trim();
+    return {
+      name,
+      email: formData.email.trim().toLowerCase(),
+      phone: formData.phone.trim(),
+      documentType: formData.documentType.trim(),
+      documentNumber,
+      address: formData.address.trim(),
+    };
+  };
+
   const customersQuery = useQuery({
     queryKey: ['customers', 'list', customersPage, customersPageSize],
     queryFn: async () => {
@@ -61,14 +74,16 @@ export default function ClientesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.documentNumber) {
+    if (isSubmitting) return;
+    const payload = normalizeCustomerPayload();
+    if (!payload.name || !payload.documentNumber) {
       showToast('Nombre y documento son obligatorios', 'error');
       return;
     }
 
     try {
       const response = await createCustomerMutation.mutateAsync({
-        ...formData,
+        ...payload,
         branchId: user?.branchId,
       });
       if (response.success) {
@@ -187,6 +202,7 @@ export default function ClientesPage() {
             <input
               required
               type="text"
+              maxLength={120}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ej: Juan Perez o Tech SAC"
@@ -213,6 +229,7 @@ export default function ClientesPage() {
               <input
                 required
                 type="text"
+                maxLength={24}
                 value={formData.documentNumber}
                 onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
                 placeholder="7728..."
@@ -226,6 +243,7 @@ export default function ClientesPage() {
               <label className="text-xs font-black uppercase tracking-widest text-gray-400">Email</label>
               <input
                 type="email"
+                maxLength={120}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="email@ejemplo.com"
@@ -236,6 +254,7 @@ export default function ClientesPage() {
               <label className="text-xs font-black uppercase tracking-widest text-gray-400">Telefono</label>
               <input
                 type="tel"
+                maxLength={20}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="999 000 000"
@@ -248,6 +267,7 @@ export default function ClientesPage() {
             <label className="text-xs font-black uppercase tracking-widest text-gray-400">Direccion</label>
             <input
               type="text"
+              maxLength={255}
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               placeholder="Ej: Av. Las Camelias 123, San Isidro"

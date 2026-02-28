@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Clock, User, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import Image from "next/image";
 
 const posts = [
   {
@@ -78,10 +78,12 @@ export default function BlogPage() {
             {posts.map((post) => (
               <article key={post.id} className="group cursor-pointer">
                 <div className="relative h-64 overflow-hidden rounded-3xl mb-6">
-                  <img 
-                    src={post.image} 
-                    alt={post.title} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    sizes="(min-width: 1024px) 320px, (min-width: 768px) 45vw, 90vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute top-4 left-4">
                     <span className="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-purple-600 uppercase tracking-widest border border-purple-100 italic">

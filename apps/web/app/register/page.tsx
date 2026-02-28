@@ -25,7 +25,12 @@ import Link from 'next/link';
 import { PasswordStrengthHint } from '@/components/forms/PasswordStrengthHint';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-const steps = [
+const steps: Array<{
+  id: string;
+  title: string;
+  icon: typeof Lock;
+  fields: Array<keyof RegisterFormData>;
+}> = [
   { id: 'auth', title: 'Cuenta', icon: Lock, fields: ['email', 'password'] },
   { id: 'company', title: 'Empresa', icon: Building, fields: ['companyName', 'country'] },
   { id: 'finish', title: 'Listo', icon: CheckCircle2, fields: [] },
@@ -54,7 +59,7 @@ export default function RegisterPage() {
   });
 
   const handleNext = async () => {
-    const activeFields = steps[currentStep].fields as any[];
+    const activeFields = steps[currentStep].fields;
     const isValid = await trigger(activeFields);
     if (isValid && currentStep < steps.length - 1) {
       setCurrentStep(curr => curr + 1);

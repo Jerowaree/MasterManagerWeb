@@ -100,7 +100,7 @@ export default function VentasPage() {
   const salesPagination = salesQuery.data?.meta;
   const customers = customersQuery.data ?? [];
   const branches = branchesQuery.data ?? [];
-  const products = productsQuery.data ?? [];
+  const products = useMemo(() => productsQuery.data?.items ?? [], [productsQuery.data]);
   const loading = salesQuery.isLoading || customersQuery.isLoading || branchesQuery.isLoading;
   const loadingProducts = productsQuery.isLoading;
 

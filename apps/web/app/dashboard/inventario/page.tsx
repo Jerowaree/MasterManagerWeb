@@ -13,6 +13,7 @@ import {
   PieChart,
   FileSpreadsheet,
   ArrowRightLeft,
+  Upload,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -20,7 +21,7 @@ import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { Modal } from '@/components/ui/Modal';
 import { PaginationControls } from '@/components/ui/PaginationControls';
-import { exportToExcel } from '@/lib/excel-utils';
+import { exportToExcel, parseInventoryExcel } from '@/lib/excel-utils';
 import {
   Branch,
   InventoryValorization,
@@ -67,6 +68,7 @@ export default function InventarioPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isValModalOpen, setIsValModalOpen] = useState(false);
+  const [isImportHelpOpen, setIsImportHelpOpen] = useState(false);
 
   const [formData, setFormData] = useState<ProductFormData>({
     productId: '',
@@ -93,7 +95,6 @@ export default function InventarioPage() {
     unitCost: '',
   });
   const lowStockAlertRef = useRef(0);
-
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
@@ -167,15 +168,17 @@ export default function InventarioPage() {
       }),
   });
 
-  const products = productsQuery.data?.items ?? [];
+  const products = useMemo(() => productsQuery.data?.items ?? [], [productsQuery.data]);
   const productsPagination = productsQuery.data?.meta;
-  const lowStockItems = lowStockQuery.data?.items ?? [];
+  const lowStockItems = useMemo(() => lowStockQuery.data?.items ?? [], [lowStockQuery.data]);
   const lowStockTotal = lowStockQuery.data?.meta.total ?? 0;
-  const branches = branchesQuery.data ?? [];
+  const branches = useMemo(() => branchesQuery.data ?? [], [branchesQuery.data]);
   const loading = productsQuery.isLoading || branchesQuery.isLoading || lowStockQuery.isLoading;
   const isSubmitting = createProductMutation.isPending;
   const isUpdating = updateProductMutation.isPending;
   const isAdjustingStock = adjustStockMutation.isPending;
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   const filteredProducts = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -310,7 +313,6 @@ export default function InventarioPage() {
       StockBajo: product.isLowStock ? 'SI' : 'NO',
       Actualizado: new Date(product.updatedAt).toLocaleString(),
     }));
-
     exportToExcel(rows, 'Inventario_Productos', 'Productos');
     showToast('Archivo Excel generado', 'success');
   };
@@ -424,6 +426,72 @@ export default function InventarioPage() {
     }
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const { items, errors, warnings } = await parseInventoryExcel(file, { maxRows: 500 });
+      if (errors.length > 0) {
+        showToast(`Errores en ${errors.length} fila(s). Corrige el archivo e intenta nuevamente.`, 'error');
+        return;
+      }
+      if (warnings.length > 0) {
+        showToast(`Advertencias: ${warnings.length} fila(s) con stock inicial sin sucursal.`, 'info');
+      }
+
+      let successCount = 0;
+      let failedCount = 0;
+      const batchSize = 5;
+
+      for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const results = await Promise.allSettled(
+          batch.map((item) =>
+            api.inventory.createProduct({
+              productId: item.productId,
+              name: item.name,
+              category: item.category,
+              price: item.price,
+              minStock: item.minStock,
+              branchId: item.branchId,
+              initialStock: item.initialStock,
+              initialCost: item.initialCost,
+            })
+          )
+        );
+        results.forEach((result) => {
+          if (result.status === 'fulfilled' && result.value.success) {
+            successCount += 1;
+          } else {
+            failedCount += 1;
+          }
+        });
+      }
+
+      showToast(
+        `Importacion completada: ${successCount} exitos, ${failedCount} fallidos.`,
+        failedCount > 0 ? 'error' : 'success'
+      );
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['inventory', 'products'] }),
+        queryClient.invalidateQueries({ queryKey: ['inventory', 'movements'] }),
+        queryClient.invalidateQueries({ queryKey: ['inventory', 'low-stock'] }),
+      ]);
+      setProductsPage(1);
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Error al importar Excel', 'error');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -438,6 +506,21 @@ export default function InventarioPage() {
           >
             <BarChart3 className="w-5 h-5 text-gray-500" />
             Valorizacion
+          </button>
+          <button
+            onClick={() => setIsImportHelpOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm"
+          >
+            <FileSpreadsheet className="w-5 h-5 text-gray-500" />
+            Formato Excel
+          </button>
+          <button
+            onClick={handleImportClick}
+            disabled={isImporting}
+            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50"
+          >
+            <Upload className="w-5 h-5 text-[#7c3aed]" />
+            {isImporting ? 'Importando...' : 'Importar Excel'}
           </button>
           <Link
             href="/dashboard/movimientos"
@@ -906,6 +989,50 @@ export default function InventarioPage() {
             </button>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        isOpen={isImportHelpOpen}
+        onClose={() => setIsImportHelpOpen(false)}
+        title="Formato de importacion"
+      >
+        <div className="space-y-6">
+          <div className="space-y-2 text-sm text-gray-600">
+            <p>Campos obligatorios: Codigo, Nombre, Categoria, Precio.</p>
+            <p>Opcionales: StockMinimo, StockInicial, CostoInicial, BranchId.</p>
+            <p>Si StockInicial &gt; 0, se recomienda incluir BranchId.</p>
+            <p>Maximo recomendado: 500 filas por archivo.</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-gray-50/50">
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">Codigo</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">Nombre</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">Categoria</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">Precio</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">StockMinimo</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">StockInicial</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">CostoInicial</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">BranchId</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                <tr>
+                  <td className="px-3 py-2">SKU-001</td>
+                  <td className="px-3 py-2">Producto A</td>
+                  <td className="px-3 py-2">Bebidas</td>
+                  <td className="px-3 py-2">12.50</td>
+                  <td className="px-3 py-2">5</td>
+                  <td className="px-3 py-2">10</td>
+                  <td className="px-3 py-2">8.90</td>
+                  <td className="px-3 py-2">{selectedBranchId || 'branch-uuid'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </Modal>
     </div>
   );
