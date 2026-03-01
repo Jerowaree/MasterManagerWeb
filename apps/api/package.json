@@ -56,6 +56,7 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
     "prettier": "^3.0.0",
+    "prisma": "^5.10.0",
     "rimraf": "^5.0.0",
     "ts-node": "^10.9.0",
     "tsconfig-paths": "^4.2.0",
