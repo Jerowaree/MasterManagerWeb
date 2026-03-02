@@ -231,7 +231,7 @@ export default function InventarioPage() {
         setIsValModalOpen(true);
       }
     } catch (err: unknown) {
-      showToast(err instanceof Error ? err.message : 'Error al calcular valorizacion', 'error');
+      showToast(err instanceof Error ? err.message : 'Error al calcular valorización', 'error');
     }
   };
 
@@ -304,12 +304,12 @@ export default function InventarioPage() {
     }
 
     const rows = filteredProducts.map((product) => ({
-      Codigo: product.productId,
+      Código: product.productId,
       Nombre: product.name,
-      Categoria: product.category,
+      Categoría: product.category,
       Precio: Number(product.price).toFixed(2),
       Stock: Number(product.quantity),
-      StockMinimo: Number(product.minStock),
+      StockMínimo: Number(product.minStock),
       StockBajo: product.isLowStock ? 'SI' : 'NO',
       Actualizado: new Date(product.updatedAt).toLocaleString(),
     }));
@@ -323,12 +323,12 @@ export default function InventarioPage() {
     const rows = valorization.products.map((product) => ({
       Producto: product.productId,
       Stock: Number(product.stock),
-      UltimoCosto: Number(product.latestCost),
+      ÚltimoCosto: Number(product.latestCost),
       ValorTotal: Number(product.totalValue),
     }));
 
-    exportToExcel(rows, 'Valorizacion_Inventario', 'Valorizacion');
-    showToast('Reporte de valorizacion exportado a Excel', 'success');
+    exportToExcel(rows, 'Valorización_Inventario', 'Valorización');
+    showToast('Reporte de valorización exportado a Excel', 'success');
   };
 
   const handleOpenEditModal = (product: ProductOption) => {
@@ -476,7 +476,7 @@ export default function InventarioPage() {
       }
 
       showToast(
-        `Importacion completada: ${successCount} exitos, ${failedCount} fallidos.`,
+        `Importación completada: ${successCount} exitosos, ${failedCount} fallidos.`,
         failedCount > 0 ? 'error' : 'success'
       );
       await Promise.all([
@@ -496,35 +496,35 @@ export default function InventarioPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-black font-heading">Inventario</h1>
-          <p className="text-gray-500">Catalogo de productos, categoria y stock por sede.</p>
+          <h1 className="text-3xl font-bold text-black dark:text-white font-heading">Inventario</h1>
+          <p className="text-gray-500 dark:text-gray-400">Catálogo de productos, categoría y stock por sede.</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={loadValorization}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
           >
-            <BarChart3 className="w-5 h-5 text-gray-500" />
-            Valorizacion
+            <BarChart3 className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            Valorización
           </button>
           <button
             onClick={() => setIsImportHelpOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
           >
-            <FileSpreadsheet className="w-5 h-5 text-gray-500" />
+            <FileSpreadsheet className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             Formato Excel
           </button>
           <button
             onClick={handleImportClick}
             disabled={isImporting}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm disabled:opacity-50"
           >
             <Upload className="w-5 h-5 text-[#7c3aed]" />
             {isImporting ? 'Importando...' : 'Importar Excel'}
           </button>
           <Link
             href="/dashboard/movimientos"
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
           >
             <ArrowRightLeft className="w-5 h-5 text-[#7c3aed]" />
             Movimientos recientes
@@ -540,8 +540,8 @@ export default function InventarioPage() {
       </div>
 
       {lowStockTotal > 0 && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
-          <div className="flex items-center gap-2 mb-2 text-red-700">
+        <div className="rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 px-5 py-4">
+          <div className="flex items-center gap-2 mb-2 text-red-700 dark:text-red-400">
             <AlertTriangle className="w-4 h-4" />
             <p className="text-sm font-black uppercase tracking-wider">
               Alerta de stock bajo ({lowStockTotal})
@@ -549,24 +549,24 @@ export default function InventarioPage() {
           </div>
           <div className="space-y-1">
             {lowStockItems.map((item) => (
-              <p key={item.productId} className="text-xs font-semibold text-red-700">
-                {item.name} ({item.productId}) - stock {Number(item.quantity)} / minimo {Number(item.minStock)}
+              <p key={item.productId} className="text-xs font-semibold text-red-700 dark:text-red-400">
+                {item.name} ({item.productId}) - stock {Number(item.quantity)} / mínimo {Number(item.minStock)}
               </p>
             ))}
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 justify-between bg-gray-50/50">
+      <div className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-white/5 flex flex-col md:flex-row gap-4 justify-between bg-gray-50 dark:bg-[#1a1a1a]/50">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por codigo, nombre o categoria..."
-              className="pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl w-full focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all text-sm"
+              placeholder="Buscar por código, nombre o categoría..."
+              className="pl-11 pr-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl w-full focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
 
@@ -577,7 +577,7 @@ export default function InventarioPage() {
                 setSelectedBranchId(e.target.value);
                 setProductsPage(1);
               }}
-              className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold"
+              className="px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white"
             >
               <option value="">Todas las sedes</option>
               {branches.map((branch) => (
@@ -589,9 +589,9 @@ export default function InventarioPage() {
 
             <button
               onClick={handleExportProducts}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
-              <FileSpreadsheet className="w-4 h-4 text-green-600" />
+              <FileSpreadsheet className="w-4 h-4 text-green-600 dark:text-green-400" />
               Exportar
             </button>
           </div>
@@ -600,49 +600,49 @@ export default function InventarioPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50">
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Codigo</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Producto</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Categoria</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100 text-right">Precio</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100 text-right">Stock</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100 text-right">Stock Min.</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Actualizado</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100 text-right">Acciones</th>
+              <tr className="bg-gray-50 dark:bg-[#1a1a1a]/50">
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Código</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Producto</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Categoría</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Precio</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Stock</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Stock Mín.</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Actualizado</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
               {loading && filteredProducts.length === 0 ? (
                 Array.from({ length: 3 }).map((_, index) => (
                   <tr key={index} className="animate-pulse">
                     <td colSpan={8} className="px-6 py-8">
-                      <div className="h-4 bg-gray-100 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-white/10 rounded w-full"></div>
                     </td>
                   </tr>
                 ))
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <tr key={product.productId} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-bold text-black">{product.productId}</td>
-                    <td className="px-6 py-4 text-sm text-black">{product.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{product.category}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-black text-right">S/ {Number(product.price).toFixed(2)}</td>
-                    <td className={`px-6 py-4 text-sm font-bold text-right ${product.isLowStock ? 'text-red-600' : 'text-black'}`}>
+                  <tr key={product.productId} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 text-sm font-bold text-black dark:text-white">{product.productId}</td>
+                    <td className="px-6 py-4 text-sm text-black dark:text-white">{product.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{product.category}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-black dark:text-white text-right">S/ {Number(product.price).toFixed(2)}</td>
+                    <td className={`px-6 py-4 text-sm font-bold text-right ${product.isLowStock ? 'text-red-600 dark:text-red-400' : 'text-black dark:text-white'}`}>
                       {Number(product.quantity)}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-black text-right">{Number(product.minStock)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{new Date(product.updatedAt).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-black dark:text-white text-right">{Number(product.minStock)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{new Date(product.updatedAt).toLocaleString()}</td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
                         onClick={() => handleOpenStockModal(product)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-bold text-black hover:bg-gray-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-white/5 px-3 py-2 text-xs font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/5"
                       >
                         <Boxes className="w-3.5 h-3.5" />
                         Stock
                       </button>
                       <button
                         onClick={() => handleOpenEditModal(product)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-bold text-black hover:bg-gray-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-white/5 px-3 py-2 text-xs font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/5"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                         Editar
@@ -652,7 +652,7 @@ export default function InventarioPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-6 py-20 text-center text-gray-400 italic">
+                  <td colSpan={8} className="px-6 py-20 text-center text-gray-400 dark:text-gray-500 italic">
                     No hay productos registrados en inventario.
                   </td>
                 </tr>
@@ -676,19 +676,19 @@ export default function InventarioPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Codigo</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Código</label>
               <input
                 type="text"
                 required
                 value={formData.productId}
                 onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
                 placeholder="SKU-001"
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Precio</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Precio</label>
               <input
                 type="number"
                 required
@@ -697,42 +697,42 @@ export default function InventarioPage() {
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="0.00"
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nombre</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nombre</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Nombre comercial del producto"
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Categoria</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Categoría</label>
             <input
               type="text"
               required
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              placeholder="Ej: Bebidas, Lacteos, Tecnologia"
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm"
+              placeholder="Ej: Bebidas, Lácteos, Tecnología"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2 sm:col-span-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Sede (si agregas stock inicial)</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Sede (si agregas stock inicial)</label>
               <select
                 value={formData.branchId}
                 onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm appearance-none"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
               >
                 <option value="">Sin stock inicial</option>
                 {branches.map((branch) => (
@@ -743,7 +743,7 @@ export default function InventarioPage() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Stock inicial</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Stock inicial</label>
               <input
                 type="number"
                 min="0"
@@ -751,13 +751,13 @@ export default function InventarioPage() {
                 value={formData.initialStock}
                 onChange={(e) => setFormData({ ...formData, initialStock: e.target.value })}
                 placeholder="0"
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Costo inicial (si hay stock)</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Costo inicial (si hay stock)</label>
             <input
               type="number"
               min="0.01"
@@ -765,7 +765,7 @@ export default function InventarioPage() {
               value={formData.initialCost}
               onChange={(e) => setFormData({ ...formData, initialCost: e.target.value })}
               placeholder="0.00"
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
             />
           </div>
 
@@ -789,39 +789,39 @@ export default function InventarioPage() {
       >
         <form onSubmit={handleEditSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Codigo</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Código</label>
             <input
               type="text"
               value={editFormData.productId}
               disabled
-              className="w-full px-5 py-3 bg-gray-100 text-gray-500 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm"
+              className="w-full px-5 py-3 bg-gray-100 dark:bg-[#1e1e1e] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nombre</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nombre</label>
             <input
               type="text"
               required
               value={editFormData.name}
               onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Categoria</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Categoría</label>
             <input
               type="text"
               required
               value={editFormData.category}
               onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Precio</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Precio</label>
             <input
               type="number"
               required
@@ -829,19 +829,19 @@ export default function InventarioPage() {
               step="0.01"
               value={editFormData.price}
               onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Stock minimo de alerta</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Stock mínimo de alerta</label>
             <input
               type="number"
               min="0"
               step="0.01"
               value={editFormData.minStock}
               onChange={(e) => setEditFormData({ ...editFormData, minStock: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
             />
           </div>
 
@@ -865,17 +865,17 @@ export default function InventarioPage() {
       >
         <form onSubmit={handleStockSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Producto</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Producto</label>
             <input
               type="text"
               value={stockFormData.productId}
               disabled
-              className="w-full px-5 py-3 bg-gray-100 text-gray-500 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm"
+              className="w-full px-5 py-3 bg-gray-100 dark:bg-[#1e1e1e] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Sede</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Sede</label>
             <select
               value={stockFormData.branchId}
               onChange={async (e) => {
@@ -885,7 +885,7 @@ export default function InventarioPage() {
                   await loadCurrentStock(stockFormData.productId, branchId);
                 }
               }}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm appearance-none"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
             >
               <option value="">Selecciona una sede</option>
               {branches.map((branch) => (
@@ -895,7 +895,7 @@ export default function InventarioPage() {
               ))}
             </select>
             {!stockFormData.branchId && (
-              <p className="text-xs font-semibold text-red-600">
+              <p className="text-xs font-semibold text-red-600 dark:text-red-400">
                 Selecciona una sede para consultar y actualizar el stock.
               </p>
             )}
@@ -903,16 +903,16 @@ export default function InventarioPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Stock actual</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Stock actual</label>
               <input
                 type="number"
                 value={stockFormData.currentQuantity}
                 disabled
-                className="w-full px-5 py-3 bg-gray-100 text-gray-500 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+                className="w-full px-5 py-3 bg-gray-100 dark:bg-[#1e1e1e] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nuevo stock objetivo</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nuevo stock objetivo</label>
               <input
                 type="number"
                 min="0"
@@ -920,13 +920,13 @@ export default function InventarioPage() {
                 value={stockFormData.targetQuantity}
                 disabled={!stockFormData.branchId}
                 onChange={(e) => setStockFormData((prev) => ({ ...prev, targetQuantity: e.target.value }))}
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right disabled:bg-gray-100 disabled:text-gray-500"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white disabled:bg-gray-100 dark:disabled:bg-[#2a2a2a] disabled:text-gray-500 dark:disabled:text-gray-400"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Costo unitario para ajuste</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Costo unitario para ajuste</label>
             <input
               type="number"
               min="0.01"
@@ -934,7 +934,7 @@ export default function InventarioPage() {
               value={stockFormData.unitCost}
               disabled={!stockFormData.branchId}
               onChange={(e) => setStockFormData((prev) => ({ ...prev, unitCost: e.target.value }))}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white disabled:bg-gray-100 dark:disabled:bg-[#2a2a2a] disabled:text-gray-500 dark:disabled:text-gray-400"
             />
           </div>
 
@@ -951,29 +951,29 @@ export default function InventarioPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={isValModalOpen} onClose={() => setIsValModalOpen(false)} title="Valorizacion de inventario">
+      <Modal isOpen={isValModalOpen} onClose={() => setIsValModalOpen(false)} title="Valorización de inventario">
         {valorization && (
           <div className="space-y-8">
-            <div className="p-8 bg-gradient-to-br from-purple-600 to-[#7c3aed] rounded-3xl text-white shadow-xl shadow-purple-200">
-              <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Valor total del almacen</p>
+            <div className="p-8 bg-gradient-to-br from-purple-600 to-[#7c3aed] rounded-3xl text-white shadow-xl shadow-purple-200 dark:shadow-purple-900/30">
+              <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Valor total del almacén</p>
               <p className="text-4xl font-bold tracking-tight italic">S/ {Number(valorization.totalPortfolioValue).toFixed(2)}</p>
             </div>
 
             <div className="space-y-4">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
                 <PieChart className="w-3 h-3" />
                 Desglose por producto
               </label>
               <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2">
                 {valorization.products.map((product) => (
-                  <div key={product.productId} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl">
+                  <div key={product.productId} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-2xl">
                     <div>
-                      <h4 className="font-bold text-black text-sm">{product.productId}</h4>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Stock: {product.stock}</p>
+                      <h4 className="font-bold text-black dark:text-white text-sm">{product.productId}</h4>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">Stock: {product.stock}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-black text-black italic">S/ {Number(product.totalValue).toFixed(2)}</p>
-                      <p className="text-[10px] text-gray-400 font-medium italic">u: S/ {Number(product.latestCost).toFixed(2)}</p>
+                      <p className="text-sm font-black text-black dark:text-white italic">S/ {Number(product.totalValue).toFixed(2)}</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium italic">u: S/ {Number(product.latestCost).toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
@@ -982,10 +982,10 @@ export default function InventarioPage() {
 
             <button
               onClick={handleExportValorization}
-              className="w-full py-4 bg-black text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-xl shadow-black/10 italic flex items-center justify-center gap-2"
+              className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all shadow-xl shadow-black/10 italic flex items-center justify-center gap-2"
             >
-              <FileSpreadsheet className="w-5 h-5 text-green-400" />
-              Exportar valorizacion a Excel
+              <FileSpreadsheet className="w-5 h-5 text-green-400 dark:text-green-600" />
+              Exportar valorización a Excel
             </button>
           </div>
         )}
@@ -994,47 +994,54 @@ export default function InventarioPage() {
       <Modal
         isOpen={isImportHelpOpen}
         onClose={() => setIsImportHelpOpen(false)}
-        title="Formato de importacion"
+        title="Formato de importación"
       >
         <div className="space-y-6">
-          <div className="space-y-2 text-sm text-gray-600">
-            <p>Campos obligatorios: Codigo, Nombre, Categoria, Precio.</p>
-            <p>Opcionales: StockMinimo, StockInicial, CostoInicial, BranchId.</p>
+          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+            <p>Campos obligatorios: Código, Nombre, Categoría, Precio.</p>
+            <p>Opcionales: StockMínimo, StockInicial, CostoInicial, BranchId.</p>
             <p>Si StockInicial &gt; 0, se recomienda incluir BranchId.</p>
-            <p>Maximo recomendado: 500 filas por archivo.</p>
+            <p>Máximo recomendado: 500 filas por archivo.</p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-gray-50/50">
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">Codigo</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">Nombre</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">Categoria</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">Precio</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">StockMinimo</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">StockInicial</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">CostoInicial</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 border-b">BranchId</th>
+                <tr className="bg-gray-50 dark:bg-[#1a1a1a]/50">
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Código</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Nombre</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Categoría</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Precio</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">StockMínimo</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">StockInicial</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">CostoInicial</th>
+                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">BranchId</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-gray-200 dark:divide-white/5">
                 <tr>
-                  <td className="px-3 py-2">SKU-001</td>
-                  <td className="px-3 py-2">Producto A</td>
-                  <td className="px-3 py-2">Bebidas</td>
-                  <td className="px-3 py-2">12.50</td>
-                  <td className="px-3 py-2">5</td>
-                  <td className="px-3 py-2">10</td>
-                  <td className="px-3 py-2">8.90</td>
-                  <td className="px-3 py-2">{selectedBranchId || 'branch-uuid'}</td>
+                  <td className="px-3 py-2 text-black dark:text-white">SKU-001</td>
+                  <td className="px-3 py-2 text-black dark:text-white">Producto A</td>
+                  <td className="px-3 py-2 text-black dark:text-white">Bebidas</td>
+                  <td className="px-3 py-2 text-black dark:text-white">12.50</td>
+                  <td className="px-3 py-2 text-black dark:text-white">5</td>
+                  <td className="px-3 py-2 text-black dark:text-white">10</td>
+                  <td className="px-3 py-2 text-black dark:text-white">8.90</td>
+                  <td className="px-3 py-2 text-black dark:text-white">{selectedBranchId || 'branch-uuid'}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
       </Modal>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImportFile}
+        accept=".xlsx,.xls,.csv"
+        className="hidden"
+      />
     </div>
   );
 }
-

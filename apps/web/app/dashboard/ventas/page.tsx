@@ -1,14 +1,33 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Filter, Loader2, Save, Calculator, Calendar, ReceiptText, FileSpreadsheet, Mail, Trash2 } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Filter,
+  Loader2,
+  Save,
+  Calculator,
+  Calendar,
+  ReceiptText,
+  FileSpreadsheet,
+  Mail,
+  Trash2
+} from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { Modal } from '@/components/ui/Modal';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { exportToExcel } from '@/lib/excel-utils';
-import { Branch, CashClosing, Customer, PaginatedData, ProductOption, Sale } from '@/lib/dashboard-types';
+import {
+  Branch,
+  CashClosing,
+  Customer,
+  PaginatedData,
+  ProductOption,
+  Sale,
+} from '@/lib/dashboard-types';
 
 type SaleItemForm = {
   productId: string;
@@ -100,7 +119,7 @@ export default function VentasPage() {
   const salesPagination = salesQuery.data?.meta;
   const customers = customersQuery.data ?? [];
   const branches = branchesQuery.data ?? [];
-  const products = useMemo(() => productsQuery.data?.items ?? [], [productsQuery.data]);
+  const products = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
   const loading = salesQuery.isLoading || customersQuery.isLoading || branchesQuery.isLoading;
   const loadingProducts = productsQuery.isLoading;
 
@@ -238,7 +257,7 @@ export default function VentasPage() {
       });
 
       if (response.success) {
-        showToast('Venta registrada con exito', 'success');
+        showToast('Venta registrada con éxito', 'success');
         setIsModalOpen(false);
         setFormError('');
         setFormData({
@@ -268,7 +287,7 @@ export default function VentasPage() {
 
     const dataToExport = sales.map((s) => ({
       ID: s.id.slice(0, 8),
-      Cliente: s.customer?.name || 'Venta Rapida',
+      Cliente: s.customer?.name || 'Venta Rápida',
       Sede: s.branch?.name,
       Fecha: new Date(s.createdAt).toLocaleDateString(),
       Total: Number(s.total),
@@ -284,7 +303,7 @@ export default function VentasPage() {
 
     const dataToExport = cashClosing.sales.map((s) => ({
       ID: s.id.slice(0, 8),
-      Cliente: s.customer?.name || 'Venta Rapida',
+      Cliente: s.customer?.name || 'Venta Rápida',
       Sede: s.branch?.name,
       Moneda: 'PEN',
       Total: Number(s.total),
@@ -299,7 +318,7 @@ export default function VentasPage() {
     try {
       showToast('Enviando reporte por correo...', 'info');
       const response = await api.reports.sendEmailReport('sales');
-      if (response.success) showToast('Reporte enviado a tu correo con exito', 'success');
+      if (response.success) showToast('Reporte enviado a tu correo con éxito', 'success');
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : 'Error al enviar correo', 'error');
     }
@@ -333,22 +352,22 @@ export default function VentasPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-black font-heading">Ventas</h1>
-          <p className="text-gray-500">Gestiona y visualiza todas las transacciones de tus sedes.</p>
+          <h1 className="text-3xl font-bold text-black dark:text-white font-heading">Ventas</h1>
+          <p className="text-gray-500 dark:text-gray-400">Gestiona y visualiza todas las transacciones de tus sedes.</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={handleSendEmail}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm w-fit"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm w-fit"
           >
             <Mail className="w-5 h-5 text-[#7c3aed]" />
             Enviar Reporte
           </button>
           <button
             onClick={loadCashClosing}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm w-fit"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm w-fit"
           >
-            <Calculator className="w-5 h-5 text-gray-400" />
+            <Calculator className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             Cierre de Caja
           </button>
           <button
@@ -364,25 +383,25 @@ export default function VentasPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 justify-between bg-gray-50/50">
+      <div className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-white/5 flex flex-col md:flex-row gap-4 justify-between bg-gray-50 dark:bg-[#1a1a1a]/50">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Buscar por cliente o ID..."
-              className="pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl w-full focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all text-sm"
+              className="pl-11 pr-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl w-full focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleExportSales}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
-              <FileSpreadsheet className="w-4 h-4 text-green-600" />
+              <FileSpreadsheet className="w-4 h-4 text-green-600 dark:text-green-400" />
               Exportar
             </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
               <Filter className="w-4 h-4" />
               Filtros
             </button>
@@ -392,39 +411,41 @@ export default function VentasPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50">
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">ID</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Cliente</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Sede</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Fecha</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Total</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Estado</th>
+              <tr className="bg-gray-50 dark:bg-[#1a1a1a]/50">
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">ID</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Cliente</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Sede</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Fecha</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Total</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Estado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
               {loading && sales.length === 0 ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td colSpan={6} className="px-6 py-8">
-                      <div className="h-4 bg-gray-100 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-white/10 rounded w-full"></div>
                     </td>
                   </tr>
                 ))
               ) : sales.length > 0 ? (
                 sales.map((sale) => (
-                  <tr key={sale.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-400">#{sale.id.slice(0, 8)}</td>
+                  <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-400 dark:text-gray-500">#{sale.id.slice(0, 8)}</td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-sm text-black">{sale.customer?.name || 'Venta Rapida'}</div>
-                      <div className="text-xs text-gray-400">{sale.customer?.email || 'No email'}</div>
+                      <div className="font-bold text-sm text-black dark:text-white">{sale.customer?.name || 'Venta Rápida'}</div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500">{sale.customer?.email || 'Sin email'}</div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">{sale.branch?.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{new Date(sale.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 font-bold text-sm text-black">S/ {Number(sale.total).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 font-medium">{sale.branch?.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{new Date(sale.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 font-bold text-sm text-black dark:text-white">S/ {Number(sale.total).toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                          sale.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                          sale.status === 'paid'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                            : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
                         }`}
                       >
                         {sale.status === 'paid' ? 'Completado' : 'Pendiente'}
@@ -434,7 +455,7 @@ export default function VentasPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-gray-400 italic">
+                  <td colSpan={6} className="px-6 py-20 text-center text-gray-400 dark:text-gray-500 italic">
                     No hay ventas registradas.
                   </td>
                 </tr>
@@ -452,58 +473,58 @@ export default function VentasPage() {
       <Modal isOpen={isCashModalOpen} onClose={() => setIsCashModalOpen(false)} title="Resumen de Cierre de Caja">
         {cashClosing && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-2xl border border-purple-100">
+            <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-100 dark:border-purple-800/30">
               <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-[#7c3aed]" />
-                <span className="font-bold text-black italic">Fecha del reporte:</span>
+                <Calendar className="w-5 h-5 text-[#7c3aed] dark:text-purple-400" />
+                <span className="font-bold text-black dark:text-white italic">Fecha del reporte:</span>
               </div>
-              <span className="text-sm font-black text-[#7c3aed] uppercase tracking-widest">
+              <span className="text-sm font-black text-[#7c3aed] dark:text-purple-400 uppercase tracking-widest">
                 {new Date(cashClosing.date).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Total Ventas</p>
-                <p className="text-2xl font-bold text-black italic">S/ {Number(cashClosing.totalAmount).toFixed(2)}</p>
+              <div className="p-6 bg-gray-50 dark:bg-[#1e1e1e] rounded-3xl border border-gray-200 dark:border-white/5">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">Total Ventas</p>
+                <p className="text-2xl font-bold text-black dark:text-white italic">S/ {Number(cashClosing.totalAmount).toFixed(2)}</p>
               </div>
-              <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Operaciones</p>
-                <p className="text-2xl font-bold text-black italic">{cashClosing.count}</p>
+              <div className="p-6 bg-gray-50 dark:bg-[#1e1e1e] rounded-3xl border border-gray-200 dark:border-white/5">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">Operaciones</p>
+                <p className="text-2xl font-bold text-black dark:text-white italic">{cashClosing.count}</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
                 <ReceiptText className="w-3 h-3" />
                 Detalle de Operaciones de Hoy
               </label>
               <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
                 {cashClosing.sales.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl hover:border-purple-200 transition-all">
+                  <div key={s.id} className="flex items-center justify-between p-3 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl hover:border-purple-200 dark:hover:border-purple-800/50 transition-all">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-black">{s.customer?.name || 'Venta Rapida'}</span>
-                      <span className="text-[10px] text-gray-400 font-medium uppercase">{s.branch?.name}</span>
+                      <span className="text-xs font-bold text-black dark:text-white">{s.customer?.name || 'Venta Rápida'}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase">{s.branch?.name}</span>
                     </div>
-                    <span className="text-sm font-black text-black italic">S/ {Number(s.total).toFixed(2)}</span>
+                    <span className="text-sm font-black text-black dark:text-white italic">S/ {Number(s.total).toFixed(2)}</span>
                   </div>
                 ))}
-                {cashClosing.sales.length === 0 && <p className="text-center py-10 text-gray-400 text-xs italic">Sin movimientos hoy.</p>}
+                {cashClosing.sales.length === 0 && <p className="text-center py-10 text-gray-400 dark:text-gray-500 text-xs italic">Sin movimientos hoy.</p>}
               </div>
             </div>
 
             <div className="pt-6 grid grid-cols-2 gap-3">
               <button
                 onClick={() => window.print()}
-                className="py-4 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm italic flex items-center justify-center gap-2"
+                className="py-4 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm italic flex items-center justify-center gap-2"
               >
                 Imprimir Reporte Z
               </button>
               <button
                 onClick={handleExportCashClosing}
-                className="py-4 bg-black text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-xl shadow-black/10 italic flex items-center justify-center gap-2"
+                className="py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all shadow-xl shadow-black/10 italic flex items-center justify-center gap-2"
               >
-                <FileSpreadsheet className="w-5 h-5 text-green-400" />
+                <FileSpreadsheet className="w-5 h-5 text-green-400 dark:text-green-600" />
                 Excel
               </button>
             </div>
@@ -521,13 +542,13 @@ export default function VentasPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Cliente (Opcional)</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Cliente (Opcional)</label>
             <select
               value={formData.customerId}
               onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm appearance-none"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
             >
-              <option value="">Venta Rapida (Sin Cliente)</option>
+              <option value="">Venta Rápida (Sin Cliente)</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -537,12 +558,12 @@ export default function VentasPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Sede</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Sede</label>
             <select
               required
               value={formData.branchId}
               onChange={(e) => handleBranchChange(e.target.value)}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm appearance-none"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
             >
               <option value="">Selecciona una sede</option>
               {branches.map((b) => (
@@ -555,11 +576,11 @@ export default function VentasPage() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Productos</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Productos</label>
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-[#1e1e1e] hover:bg-gray-200 dark:hover:bg-white/10 text-black dark:text-white transition-colors"
               >
                 + Agregar
               </button>
@@ -572,7 +593,7 @@ export default function VentasPage() {
                     required
                     value={item.productId}
                     onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                    className="col-span-5 px-3 py-3 bg-gray-50 border-gray-100 rounded-2xl text-sm font-bold outline-none"
+                    className="col-span-5 px-3 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl text-sm font-bold outline-none text-black dark:text-white"
                     disabled={!formData.branchId || loadingProducts}
                   >
                     <option value="">{loadingProducts ? 'Cargando productos...' : 'Selecciona producto'}</option>
@@ -590,7 +611,7 @@ export default function VentasPage() {
                     step="0.01"
                     value={item.quantity}
                     onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                    className="col-span-3 px-3 py-3 bg-gray-50 border-gray-100 rounded-2xl text-sm text-right font-bold outline-none"
+                    className="col-span-3 px-3 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl text-sm text-right font-bold outline-none text-black dark:text-white"
                     placeholder="Cant."
                   />
 
@@ -601,7 +622,7 @@ export default function VentasPage() {
                     step="0.01"
                     value={item.unitPrice}
                     readOnly
-                    className="col-span-3 px-3 py-3 bg-gray-50 border-gray-100 rounded-2xl text-sm text-right font-bold outline-none"
+                    className="col-span-3 px-3 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl text-sm text-right font-bold outline-none text-black dark:text-white"
                     placeholder="Precio"
                   />
 
@@ -609,43 +630,43 @@ export default function VentasPage() {
                     type="button"
                     onClick={() => handleRemoveItem(index)}
                     disabled={formData.items.length === 1}
-                    className="col-span-1 h-11 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 flex items-center justify-center"
+                    className="col-span-1 h-11 rounded-xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1e1e1e] hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-40 flex items-center justify-center"
                   >
-                    <Trash2 className="w-4 h-4 text-gray-500" />
+                    <Trash2 className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   </button>
                 </div>
               ))}
             </div>
 
             {formData.branchId && products.length === 0 && !loadingProducts && (
-              <p className="text-xs text-orange-600 font-semibold">
+              <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold">
                 No hay productos con stock en esta sede. Crea entradas en Inventario primero.
               </p>
             )}
 
             {(stockExceededMessage || formError) && (
-              <p className="text-xs font-semibold text-red-600">{stockExceededMessage || formError}</p>
+              <p className="text-xs font-semibold text-red-600 dark:text-red-400">{stockExceededMessage || formError}</p>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Estado</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Estado</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as 'paid' | 'pending' })}
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm appearance-none"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
               >
                 <option value="paid">Pagado</option>
                 <option value="pending">Pendiente</option>
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Total calculado (S/)</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Total calculado (S/)</label>
               <input
                 readOnly
                 value={computedTotal.toFixed(2)}
-                className="w-full px-5 py-3 bg-gray-100 border-gray-100 rounded-2xl font-bold text-sm text-right"
+                className="w-full px-5 py-3 bg-gray-100 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-2xl font-bold text-sm text-right text-black dark:text-white"
               />
             </div>
           </div>

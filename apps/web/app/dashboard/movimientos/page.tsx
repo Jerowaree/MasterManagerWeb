@@ -148,7 +148,7 @@ export default function MovimientosPage() {
       });
 
       if (response.success) {
-        showToast('Movimiento registrado con exito', 'success');
+        showToast('Movimiento registrado con éxito', 'success');
         setIsModalOpen(false);
         setFormData({
           productId: '',
@@ -176,9 +176,9 @@ export default function MovimientosPage() {
 
     const data = filteredMovements.map((movement) => ({
       Fecha: new Date(movement.createdAt).toLocaleString(),
-      Codigo: movement.productId,
+      Código: movement.productId,
       Producto: movement.product?.name ?? movement.productId,
-      Categoria: movement.product?.category ?? 'Sin categoria',
+      Categoría: movement.product?.category ?? 'Sin categoría',
       Sede: movement.branch?.name ?? '-',
       Tipo: movement.type === 'IN' ? 'Entrada' : 'Salida',
       Cantidad: Number(movement.quantity),
@@ -194,7 +194,7 @@ export default function MovimientosPage() {
       showToast('Enviando reporte por correo...', 'info');
       const response = await api.reports.sendEmailReport('inventory');
       if (response.success) {
-        showToast('Reporte enviado a tu correo con exito', 'success');
+        showToast('Reporte enviado a tu correo con éxito', 'success');
       }
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : 'Error al enviar correo', 'error');
@@ -205,13 +205,13 @@ export default function MovimientosPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-black font-heading">Movimientos Recientes</h1>
-          <p className="text-gray-500">Entradas y salidas de stock por sede.</p>
+          <h1 className="text-3xl font-bold text-black dark:text-white font-heading">Movimientos Recientes</h1>
+          <p className="text-gray-500 dark:text-gray-400">Entradas y salidas de stock por sede.</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={handleSendEmail}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm w-fit"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm w-fit"
           >
             <Mail className="w-5 h-5 text-[#7c3aed]" />
             Enviar Reporte
@@ -226,23 +226,23 @@ export default function MovimientosPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 justify-between bg-gray-50/50">
+      <div className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-white/5 flex flex-col md:flex-row gap-4 justify-between bg-gray-50 dark:bg-[#1a1a1a]/50">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por codigo, producto o categoria..."
-              className="pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl w-full focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all text-sm"
+              placeholder="Buscar por código, producto o categoría..."
+              className="pl-11 pr-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl w-full focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
-            <FileSpreadsheet className="w-4 h-4 text-green-600" />
+            <FileSpreadsheet className="w-4 h-4 text-green-600 dark:text-green-400" />
             Exportar
           </button>
         </div>
@@ -250,52 +250,54 @@ export default function MovimientosPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50">
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Fecha</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Producto</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Categoria</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Sede</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100">Tipo</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100 text-right">Cant.</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 border-b border-gray-100 text-right">Costo Unit.</th>
+              <tr className="bg-gray-50 dark:bg-[#1a1a1a]/50">
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Fecha</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Producto</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Categoría</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Sede</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Tipo</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Cant.</th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Costo Unit.</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
               {loading && filteredMovements.length === 0 ? (
                 Array.from({ length: 3 }).map((_, index) => (
                   <tr key={index} className="animate-pulse">
                     <td colSpan={7} className="px-6 py-8">
-                      <div className="h-4 bg-gray-100 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-white/10 rounded w-full"></div>
                     </td>
                   </tr>
                 ))
               ) : filteredMovements.length > 0 ? (
                 filteredMovements.map((movement) => (
-                  <tr key={movement.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-600">{new Date(movement.createdAt).toLocaleString()}</td>
+                  <tr key={movement.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{new Date(movement.createdAt).toLocaleString()}</td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-sm text-black">{movement.product?.name ?? movement.productId}</div>
-                      <div className="text-xs text-gray-400 font-semibold">{movement.productId}</div>
+                      <div className="font-bold text-sm text-black dark:text-white">{movement.product?.name ?? movement.productId}</div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500 font-semibold">{movement.productId}</div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{movement.product?.category ?? 'Sin categoria'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">{movement.branch?.name ?? '-'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{movement.product?.category ?? 'Sin categoría'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 font-medium">{movement.branch?.name ?? '-'}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                          movement.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                          movement.type === 'IN'
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                         }`}
                       >
                         {movement.type === 'IN' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                         {movement.type === 'IN' ? 'Entrada' : 'Salida'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-black text-right">{Number(movement.quantity)}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-black text-right">S/ {Number(movement.unitCost).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-black dark:text-white text-right">{Number(movement.quantity)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-black dark:text-white text-right">S/ {Number(movement.unitCost).toFixed(2)}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-20 text-center text-gray-400 italic">
+                  <td colSpan={7} className="px-6 py-20 text-center text-gray-400 dark:text-gray-500 italic">
                     No hay movimientos registrados.
                   </td>
                 </tr>
@@ -314,12 +316,12 @@ export default function MovimientosPage() {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nuevo Movimiento de Stock">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Sede</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Sede</label>
             <select
               required
               value={formData.branchId}
               onChange={(e) => setFormData({ ...formData, branchId: e.target.value, productId: '' })}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm appearance-none"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
             >
               <option value="">Selecciona una sede</option>
               {branches.map((branch) => (
@@ -331,12 +333,12 @@ export default function MovimientosPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Producto</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Producto</label>
             <select
               required
               value={formData.productId}
               onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm appearance-none"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!formData.branchId || productsQuery.isLoading}
             >
               <option value="">{productsQuery.isLoading ? 'Cargando productos...' : 'Selecciona un producto'}</option>
@@ -350,18 +352,18 @@ export default function MovimientosPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Tipo</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Tipo</label>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value as 'IN' | 'OUT' })}
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm appearance-none"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
               >
                 <option value="IN">Entrada (+)</option>
                 <option value="OUT">Salida (-)</option>
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Cantidad</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Cantidad</label>
               <input
                 type="number"
                 required
@@ -369,13 +371,13 @@ export default function MovimientosPage() {
                 step="0.01"
                 value={formData.quantity}
                 onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Costo Unitario</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Costo Unitario</label>
             <input
               type="number"
               required
@@ -383,7 +385,7 @@ export default function MovimientosPage() {
               step="0.01"
               value={formData.unitCost}
               onChange={(e) => setFormData({ ...formData, unitCost: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
             />
           </div>
 

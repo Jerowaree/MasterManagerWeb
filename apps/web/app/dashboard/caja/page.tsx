@@ -153,15 +153,15 @@ export default function CajaPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-black font-heading">Caja</h1>
-          <p className="text-gray-500">Registra ingresos y egresos de caja por sucursal.</p>
+          <h1 className="text-3xl font-bold text-black dark:text-white font-heading">Caja</h1>
+          <p className="text-gray-500 dark:text-gray-400">Registra ingresos y egresos de caja por sucursal.</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm w-fit"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm w-fit"
           >
-            <FileSpreadsheet className="w-5 h-5 text-green-600" />
+            <FileSpreadsheet className="w-5 h-5 text-green-600 dark:text-green-400" />
             Exportar Excel
           </button>
           <button
@@ -175,7 +175,7 @@ export default function CajaPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-sm text-gray-500 font-semibold">Sucursal:</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400 font-semibold">Sucursal:</span>
         {canSelectBranch ? (
           <select
             value={filterBranchId}
@@ -183,7 +183,7 @@ export default function CajaPage() {
               setFilterBranchId(e.target.value);
               setCashPage(1);
             }}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-2xl text-sm font-semibold"
+            className="px-4 py-2 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 rounded-2xl text-sm font-semibold text-black dark:text-white"
           >
             <option value="">Todas</option>
             {branches.map((branch) => (
@@ -193,7 +193,7 @@ export default function CajaPage() {
             ))}
           </select>
         ) : (
-          <span className="px-4 py-2 bg-white border border-gray-200 rounded-2xl text-sm font-semibold">
+          <span className="px-4 py-2 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 rounded-2xl text-sm font-semibold text-black dark:text-white">
             {selectedBranchName}
           </span>
         )}
@@ -202,11 +202,11 @@ export default function CajaPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cashQuery.isLoading && cashMovements.length === 0 ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 animate-pulse h-40" />
+            <div key={i} className="bg-white dark:bg-[#141414] p-6 rounded-3xl border border-gray-200 dark:border-white/5 animate-pulse h-40" />
           ))
         ) : cashMovements.length > 0 ? (
           cashMovements.map((movement) => (
-            <div key={movement.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <div key={movement.id} className="bg-white dark:bg-[#141414] p-6 rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm">
               <div className="flex items-center gap-3">
                 {movement.type === 'IN' ? (
                   <ArrowUpCircle className="w-6 h-6 text-emerald-500" />
@@ -214,31 +214,31 @@ export default function CajaPage() {
                   <ArrowDownCircle className="w-6 h-6 text-rose-500" />
                 )}
                 <div>
-                  <p className="text-sm font-bold text-black">
+                  <p className="text-sm font-bold text-black dark:text-white">
                     {movement.type === 'IN' ? 'Ingreso' : 'Egreso'}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
                     {new Date(movement.createdAt).toLocaleString()}
                   </p>
                 </div>
               </div>
 
               <div className="mt-4">
-                <p className="text-2xl font-bold text-black">S/ {Number(movement.amount).toFixed(2)}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  {movement.description || 'Sin descripcion'}
+                <p className="text-2xl font-bold text-black dark:text-white">S/ {Number(movement.amount).toFixed(2)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  {movement.description || 'Sin descripción'}
                 </p>
                 {movement.reference && (
-                  <p className="text-xs text-gray-400 mt-1">Ref: {movement.reference}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Ref: {movement.reference}</p>
                 )}
-                <p className="text-xs text-gray-400 mt-3">Sucursal: {movement.branch?.name ?? selectedBranchName}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">Sucursal: {movement.branch?.name ?? selectedBranchName}</p>
               </div>
             </div>
           ))
         ) : (
-          <div className="col-span-full bg-white p-20 rounded-3xl border border-gray-100 border-dashed text-center">
-            <ArrowUpCircle className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-            <p className="text-gray-400 italic font-medium">No hay movimientos de caja registrados.</p>
+          <div className="col-span-full bg-white dark:bg-[#141414] p-20 rounded-3xl border border-gray-200 dark:border-white/5 border-dashed text-center">
+            <ArrowUpCircle className="w-12 h-12 text-gray-200 dark:text-gray-700 mx-auto mb-4" />
+            <p className="text-gray-400 dark:text-gray-500 italic font-medium">No hay movimientos de caja registrados.</p>
           </div>
         )}
       </div>
@@ -253,12 +253,12 @@ export default function CajaPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {canSelectBranch && (
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Sucursal</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Sucursal</label>
               <select
                 required
                 value={formData.branchId}
                 onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white"
               >
                 <option value="">Selecciona una sucursal</option>
                 {branches.map((branch) => (
@@ -272,18 +272,18 @@ export default function CajaPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Tipo</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Tipo</label>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value as 'IN' | 'OUT' })}
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white"
               >
                 <option value="IN">Ingreso</option>
                 <option value="OUT">Egreso</option>
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Monto</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Monto</label>
               <input
                 required
                 type="number"
@@ -292,30 +292,30 @@ export default function CajaPage() {
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 placeholder="Ej: 150.00"
-                className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
+                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Descripcion</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Descripción</label>
             <input
               type="text"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Ej: Pago de servicios"
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Referencia</label>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Referencia</label>
             <input
               type="text"
               value={formData.reference}
               onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
               placeholder="Ej: Boleta #123"
-              className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
+              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white"
             />
           </div>
 
@@ -323,14 +323,14 @@ export default function CajaPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-6 py-3 text-gray-500 font-bold hover:text-black transition-colors"
+              className="px-6 py-3 text-gray-500 dark:text-gray-400 font-bold hover:text-black dark:hover:text-white transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-8 py-3 bg-black text-white rounded-2xl font-bold hover:bg-gray-800 transition-all"
+              className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all"
             >
               {isSubmitting ? 'Guardando...' : 'Guardar Movimiento'}
             </button>

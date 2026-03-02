@@ -230,7 +230,7 @@ export default function SettingsPage() {
     e.preventDefault();
     const strength = evaluatePassword(passwordData.newPassword);
     if (strength.score < 5) {
-      showToast('La nueva contraseña no cumple la politica de seguridad', 'error');
+      showToast('La nueva contraseña no cumple la política de seguridad', 'error');
       return;
     }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -245,7 +245,7 @@ export default function SettingsPage() {
         newPassword: passwordData.newPassword
       });
       if (response.success) {
-        showToast('Contraseña actualizada con exito', 'success');
+        showToast('Contraseña actualizada con éxito', 'success');
         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       }
     } catch (err: unknown) {
@@ -290,10 +290,9 @@ export default function SettingsPage() {
         ...criticalConfirmation,
       });
       if (response.success) {
-        showToast('Empresa actualizada correctamente. Si cambiaste el dominio, vuelve a iniciar sesion.', 'success');
+        showToast('Empresa actualizada correctamente. Si cambiaste el dominio, vuelve a iniciar sesión.', 'success');
         await loadProfile();
         await loadCompanyUsers();
-
         await refreshUser();
         return true;
       }
@@ -394,7 +393,7 @@ export default function SettingsPage() {
     }
 
     if (!paymentPassword) {
-      showToast('Ingresa tu contrasena actual para confirmar el pago', 'error');
+      showToast('Ingresa tu contraseña actual para confirmar el pago', 'error');
       return;
     }
 
@@ -421,7 +420,7 @@ export default function SettingsPage() {
 
   const handleIssueSunatDocument = async () => {
     if (!isPeruCompany) {
-      showToast('SUNAT solo esta disponible para empresas con pais PE', 'error');
+      showToast('SUNAT solo está disponible para empresas con país PE', 'error');
       return;
     }
 
@@ -454,23 +453,23 @@ export default function SettingsPage() {
       return {
         title: 'Confirmar cambio de dominio',
         description:
-          'Cambiar el dominio afectara los correos permitidos para todos los usuarios de su empresa. Confirma con tu contraseña actual.',
+          'Cambiar el dominio afectará los correos permitidos para todos los usuarios de su empresa. Confirma con tu contraseña actual.',
         actionLabel: 'Confirmar cambio',
       };
     }
 
     return {
-      title: 'Confirmar creacion de admin',
+      title: 'Confirmar creación de admin',
       description:
-        'Estas por crear un usuario con permisos administrativos. Confirma con tu contraseña actual para continuar.',
+        'Estás por crear un usuario con permisos administrativos. Confirma con tu contraseña actual para continuar.',
       actionLabel: 'Crear admin',
     };
   }, [pendingAction]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-10 h-10 text-[#7c3aed] animate-spin" />
+      <div className="flex items-center justify-center py-20 bg-white dark:bg-[#0a0a0a]">
+        <Loader2 className="w-10 h-10 text-[#7c3aed] dark:text-purple-400 animate-spin" />
       </div>
     );
   }
@@ -478,22 +477,22 @@ export default function SettingsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-10">
       <div>
-        <h1 className="text-3xl font-bold text-black font-heading">Configuracion</h1>
-        <p className="text-gray-500">Gestiona la seguridad, tu empresa y los usuarios de tu empresa.</p>
+        <h1 className="text-3xl font-bold text-black dark:text-white font-heading">Configuración</h1>
+        <p className="text-gray-500 dark:text-gray-400">Gestiona la seguridad, tu empresa y los usuarios de tu empresa.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
         <div className="space-y-2">
           <nav className="flex flex-col gap-1">
-            <button className="flex items-center gap-3 px-4 py-3 bg-purple-50 text-[#7c3aed] rounded-xl font-bold text-sm text-left">
+            <button className="flex items-center gap-3 px-4 py-3 bg-purple-50 dark:bg-purple-900/30 text-[#7c3aed] dark:text-purple-400 rounded-xl font-bold text-sm text-left">
               <User className="w-4 h-4" />
               Perfil del Usuario
             </button>
-            <button className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium text-sm text-left transition-colors">
+            <button className="flex items-center gap-3 px-4 py-3 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl font-medium text-sm text-left transition-colors">
               <Building className="w-4 h-4" />
               Empresa y Dominio
             </button>
-            <button className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium text-sm text-left transition-colors">
+            <button className="flex items-center gap-3 px-4 py-3 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl font-medium text-sm text-left transition-colors">
               <Users className="w-4 h-4" />
               Usuarios de la empresa
             </button>
@@ -504,31 +503,31 @@ export default function SettingsPage() {
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6"
+            className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm space-y-6"
           >
-            <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
-              <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-[#7c3aed]">
+            <div className="flex items-center gap-3 border-b border-gray-200 dark:border-white/5 pb-4">
+              <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-[#7c3aed] dark:text-purple-400">
                 <User className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-black">Informacion Personal</h3>
-                <p className="text-xs text-gray-400 font-medium">Tus datos basicos de acceso</p>
+                <h3 className="font-bold text-black dark:text-white">Información Personal</h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Tus datos básicos de acceso</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400">Email</label>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-transparent">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-bold text-black">{profile?.email}</span>
+                <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Email</label>
+                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#1e1e1e] rounded-2xl border border-transparent">
+                  <Mail className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm font-bold text-black dark:text-white">{profile?.email}</span>
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400">Rol</label>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-transparent">
-                  <Shield className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-bold text-black capitalize">{profile?.role}</span>
+                <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Rol</label>
+                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#1e1e1e] rounded-2xl border border-transparent">
+                  <Shield className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm font-bold text-black dark:text-white capitalize">{profile?.role}</span>
                 </div>
               </div>
             </div>
@@ -538,15 +537,15 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6"
+            className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm space-y-6"
           >
-            <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
-              <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-[#7c3aed]">
+            <div className="flex items-center gap-3 border-b border-gray-200 dark:border-white/5 pb-4">
+              <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-[#7c3aed] dark:text-purple-400">
                 <Building className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-black">Datos de la Empresa</h3>
-                <p className="text-xs text-gray-400 font-medium">Actualizar nombre y dominio de correos de la empresa</p>
+                <h3 className="font-bold text-black dark:text-white">Datos de la Empresa</h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Actualizar nombre y dominio de correos de la empresa</p>
               </div>
             </div>
 
@@ -565,15 +564,15 @@ export default function SettingsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12 }}
-              className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6"
+              className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm space-y-6"
             >
-              <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
-                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+              <div className="flex items-center gap-3 border-b border-gray-200 dark:border-white/5 pb-4">
+                <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-black">Facturacion y Plan</h3>
-                  <p className="text-xs text-gray-400 font-medium">
+                  <h3 className="font-bold text-black dark:text-white">Facturación y Plan</h3>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
                     Paga y actualiza el plan de tu empresa de forma segura.
                   </p>
                 </div>
@@ -587,19 +586,19 @@ export default function SettingsPage() {
                     onClick={() => setSelectedPlanId(plan.id)}
                     className={`text-left rounded-2xl border px-5 py-4 transition-all ${
                       selectedPlanId === plan.id
-                        ? 'border-[#7c3aed] bg-purple-50/50'
-                        : 'border-gray-100 hover:border-gray-200'
+                        ? 'border-[#7c3aed] bg-purple-50/50 dark:bg-purple-900/20'
+                        : 'border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-4">
-                      <p className="text-sm font-bold text-black">{plan.name}</p>
+                      <p className="text-sm font-bold text-black dark:text-white">{plan.name}</p>
                       {currentPlanId === plan.id && (
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#7c3aed]">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#7c3aed] dark:text-purple-400">
                           Actual
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       Mensual: {plan.currency} {Number(plan.monthlyPrice).toFixed(2)}
                       <br />
                       Anual: {plan.currency} {Number(plan.yearlyPrice).toFixed(2)}
@@ -610,11 +609,11 @@ export default function SettingsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">Ciclo</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Ciclo</label>
                   <select
                     value={billingCycle}
                     onChange={(e) => setBillingCycle(e.target.value as 'monthly' | 'yearly')}
-                    className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1e1e1e] rounded-xl border border-gray-200 dark:border-white/5 outline-none text-black dark:text-white"
                     disabled={!canRunCriticalActions || loadingBillingPlans || payingPlan}
                   >
                     <option value="monthly">Mensual</option>
@@ -623,13 +622,13 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">Confirmar con contrasena actual</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Confirmar con contraseña actual</label>
                   <input
                     type="password"
                     value={paymentPassword}
                     onChange={(e) => setPaymentPassword(e.target.value)}
-                    placeholder="Contrasena actual del owner/superadmin"
-                    className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 outline-none"
+                    placeholder="Contraseña actual del owner/superadmin"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1e1e1e] rounded-xl border border-gray-200 dark:border-white/5 outline-none text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     disabled={!canRunCriticalActions || loadingBillingPlans || payingPlan}
                   />
                 </div>
@@ -654,32 +653,32 @@ export default function SettingsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.13 }}
-              className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6"
+              className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm space-y-6"
             >
-              <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
-                <div className="w-10 h-10 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600">
+              <div className="flex items-center gap-3 border-b border-gray-200 dark:border-white/5 pb-4">
+                <div className="w-10 h-10 bg-sky-50 dark:bg-sky-900/30 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400">
                   <ReceiptText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-black">Facturacion Electronica SUNAT</h3>
-                  <p className="text-xs text-gray-400 font-medium">
-                    Disponible solo para empresas registradas en Peru (PE).
+                  <h3 className="font-bold text-black dark:text-white">Facturación Electrónica SUNAT</h3>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+                    Disponible solo para empresas registradas en Perú (PE).
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4 flex items-center justify-between">
+              <div className="rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-[#1e1e1e] p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-gray-400">Estado</p>
-                  <p className="text-sm font-bold text-black mt-1">
+                  <p className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Estado</p>
+                  <p className="text-sm font-bold text-black dark:text-white mt-1">
                     {sunatStatus?.enabled ? 'Habilitado' : 'No habilitado'}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Entorno: <span className="font-bold">{sunatStatus?.environment ?? '-'}</span>
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Proveedor: <span className="font-bold">{sunatStatus?.provider ?? 'SUNAT'}</span>
                   </p>
                 </div>
@@ -690,7 +689,7 @@ export default function SettingsPage() {
                   value={sunatSaleId}
                   onChange={(e) => setSunatSaleId(e.target.value)}
                   placeholder="ID de venta"
-                  className="md:col-span-3 w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 outline-none"
+                  className="md:col-span-3 w-full px-4 py-3 bg-gray-50 dark:bg-[#1e1e1e] rounded-xl border border-gray-200 dark:border-white/5 outline-none text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 />
                 <button
                   type="button"
@@ -705,26 +704,26 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 {loadingSunat && sunatDocuments.length === 0 ? (
-                  <p className="text-sm text-gray-500">Cargando documentos SUNAT...</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Cargando documentos SUNAT...</p>
                 ) : sunatDocuments.length > 0 ? (
                   sunatDocuments.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3">
+                    <div key={doc.id} className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-white/5 px-4 py-3 bg-white dark:bg-[#1e1e1e]">
                       <div>
-                        <p className="text-sm font-bold text-black">
+                        <p className="text-sm font-bold text-black dark:text-white">
                           {doc.series}-{doc.correlative}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           Venta: {doc.saleId} | {new Date(doc.createdAt).toLocaleString()}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs uppercase tracking-widest font-bold text-[#7c3aed]">{doc.documentType}</p>
-                        <p className="text-xs text-gray-500">{doc.status}</p>
+                        <p className="text-xs uppercase tracking-widest font-bold text-[#7c3aed] dark:text-purple-400">{doc.documentType}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{doc.status}</p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500">No hay comprobantes SUNAT registrados.</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No hay comprobantes SUNAT registrados.</p>
                 )}
               </div>
 
@@ -741,15 +740,15 @@ export default function SettingsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6"
+              className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm space-y-6"
             >
-              <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
-                <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-[#7c3aed]">
+              <div className="flex items-center gap-3 border-b border-gray-200 dark:border-white/5 pb-4">
+                <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-[#7c3aed] dark:text-purple-400">
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-black">Usuarios de la empresa</h3>
-                  <p className="text-xs text-gray-400 font-medium">
+                  <h3 className="font-bold text-black dark:text-white">Usuarios de la empresa</h3>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
                     Se crean con el dominio @{profile?.company?.emailDomain}
                   </p>
                 </div>
@@ -763,16 +762,16 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 {companyUsers.map((companyUser) => (
-                  <div key={companyUser.id} className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3">
+                  <div key={companyUser.id} className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-white/5 px-4 py-3 bg-white dark:bg-[#1e1e1e]">
                     <div>
-                      <p className="text-sm font-bold text-black">{companyUser.email}</p>
-                      <p className="text-xs text-gray-500">{new Date(companyUser.createdAt).toLocaleString()}</p>
+                      <p className="text-sm font-bold text-black dark:text-white">{companyUser.email}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(companyUser.createdAt).toLocaleString()}</p>
                     </div>
-                    <span className="text-xs uppercase tracking-widest font-bold text-[#7c3aed]">{companyUser.role}</span>
+                    <span className="text-xs uppercase tracking-widest font-bold text-[#7c3aed] dark:text-purple-400">{companyUser.role}</span>
                   </div>
                 ))}
                 {companyUsers.length === 0 && (
-                  <p className="text-sm text-gray-500">No hay usuarios registrados para esta empresa.</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No hay usuarios registrados para esta empresa.</p>
                 )}
               </div>
               <PaginationControls
@@ -787,63 +786,63 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6"
+            className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm space-y-6"
           >
-            <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
-              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500">
+            <div className="flex items-center gap-3 border-b border-gray-200 dark:border-white/5 pb-4">
+              <div className="w-10 h-10 bg-red-50 dark:bg-red-900/30 rounded-xl flex items-center justify-center text-red-500 dark:text-red-400">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-black">Seguridad de Cuenta</h3>
-                <p className="text-xs text-gray-400 font-medium">Actualiza tu contraseña de acceso</p>
+                <h3 className="font-bold text-black dark:text-white">Seguridad de Cuenta</h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Actualiza tu contraseña de acceso</p>
               </div>
             </div>
 
             <form onSubmit={handlePasswordChange} className="space-y-6">
               <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">Contraseña Actual</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Contraseña Actual</label>
                   <input
                     type="password"
                     required
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                     placeholder="********"
-                    className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
+                    className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Nueva Contraseña</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nueva Contraseña</label>
                     <input
                       type="password"
                       required
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      placeholder="Min. 8 caracteres"
-                      className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
+                      placeholder="Mín. 8 caracteres"
+                      className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     />
                     <PasswordStrengthHint password={passwordData.newPassword} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">Confirmar Contraseña</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Confirmar Contraseña</label>
                     <input
                       type="password"
                       required
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                       placeholder="********"
-                      className="w-full px-5 py-3 bg-gray-50 border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm"
+                      className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-50 flex justify-end">
+              <div className="pt-4 border-t border-gray-200 dark:border-white/5 flex justify-end">
                 <button
                   type="submit"
                   disabled={savingPassword}
-                  className="flex items-center gap-2 px-8 py-3 bg-black text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-xl shadow-black/10 disabled:opacity-50"
+                  className="flex items-center gap-2 px-8 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all shadow-xl shadow-black/10 disabled:opacity-50"
                 >
                   {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Actualizar Contraseña
