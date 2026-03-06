@@ -26,6 +26,7 @@ import { CsrfMiddleware } from './common/middlewares/csrf.middleware';
 import { SubscriptionGuard } from './common/guards/subscription.guard';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CashModule } from "./modules/cash/cash.module";
+import { ReceivablesModule } from "./modules/receivables/receivables.module";
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CashModule } from "./modules/cash/cash.module";
     SecurityModule,
     GeoModule,
     CashModule,
+    ReceivablesModule,
   ],
   controllers: [AppController],
   providers: [

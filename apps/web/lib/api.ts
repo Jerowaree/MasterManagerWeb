@@ -122,6 +122,45 @@ export const api = {
         headers: idempotencyKey ? { 'idempotency-key': idempotencyKey } : undefined,
       }),
   },
+  receivables: {
+    findAll: (params?: {
+      page?: number;
+      limit?: number;
+      branchId?: string;
+      status?: string;
+      customerId?: string;
+      dueFrom?: string;
+      dueTo?: string;
+      search?: string;
+    }) =>
+      fetchWithAuth(
+        `/receivables${buildQueryString({
+          page: params?.page,
+          limit: params?.limit,
+          branchId: params?.branchId,
+          status: params?.status,
+          customerId: params?.customerId,
+          dueFrom: params?.dueFrom,
+          dueTo: params?.dueTo,
+          search: params?.search,
+        })}`,
+      ),
+    findOne: (id: string) => fetchWithAuth(`/receivables/${encodeURIComponent(id)}`),
+    create: (data: unknown) =>
+      fetchWithAuth('/receivables', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: unknown) =>
+      fetchWithAuth(`/receivables/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    addPayment: (id: string, data: unknown) =>
+      fetchWithAuth(`/receivables/${encodeURIComponent(id)}/payments`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    listPayments: (id: string) =>
+      fetchWithAuth(`/receivables/${encodeURIComponent(id)}/payments`),
+  },
   inventory: {
     getMovements: (params?: PaginationParams) =>
       fetchWithAuth(`/inventory/movements${buildQueryString({ page: params?.page, limit: params?.limit })}`),

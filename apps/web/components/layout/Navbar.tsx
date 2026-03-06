@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, Rocket, ChevronRight } from 'lucide-react';
+import { Menu, X, User, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [

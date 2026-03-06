@@ -28,6 +28,9 @@ export type InventoryImportResult = {
   warnings: InventoryImportWarning[];
 };
 
+type NumericField = 'price' | 'minStock' | 'initialStock' | 'initialCost';
+type TextField = 'productId' | 'name' | 'category';
+
 const HEADER_ALIASES: Record<string, keyof InventoryImportItem> = {
   codigo: 'productId',
   sku: 'productId',
@@ -89,7 +92,7 @@ export function parseInventoryRows(
       if (alias === 'price' || alias === 'minStock' || alias === 'initialStock' || alias === 'initialCost') {
         const numeric = toNumber(value);
         if (numeric !== undefined) {
-          mapped[alias] = numeric as any;
+          (mapped as Record<NumericField, number | undefined>)[alias] = numeric;
         }
         return;
       }
@@ -98,8 +101,12 @@ export function parseInventoryRows(
         if (text) mapped.branchId = text;
         return;
       }
-      const text = String(value ?? '').trim();
-      if (text) (mapped as any)[alias] = text;
+      if (alias === 'productId' || alias === 'name' || alias === 'category') {
+        const text = String(value ?? '').trim();
+        if (text) {
+          (mapped as Record<TextField, string>)[alias] = text;
+        }
+      }
     });
 
     const productId = mapped.productId?.trim();

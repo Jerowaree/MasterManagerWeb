@@ -16,3 +16,10 @@ export enum MovementType {
   OUT = 'OUT',
   TRANSFER = 'TRANSFER',
 }
+
+export enum ReceivableStatus {
+  OPEN = 'open',
+  OVERDUE = 'overdue',
+  PAID = 'paid',
+  CANCELLED = 'cancelled',
+}

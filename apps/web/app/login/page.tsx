@@ -11,7 +11,6 @@ import {
   EyeOff,
   AlertCircle,
   ArrowLeft,
-  Zap,
   ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
