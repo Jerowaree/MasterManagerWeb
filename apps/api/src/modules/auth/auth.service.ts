@@ -2,7 +2,7 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID, timingSafeEqual } from 'crypto';
 import { RegisterDto } from './dto/register.dto';
 import { tenantStorage } from '../../common/store/tenant.store';
 import { buildCompanyEmailDomain } from '../../common/utils/company-domain.utils';
@@ -208,7 +208,7 @@ export class AuthService {
         throw new UnauthorizedException('Refresh token invalido');
       }
 
-      const validHash = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+      const validHash = await this.verifyStoredRefreshToken(user.refreshTokenHash, refreshToken);
       if (!validHash) {
         await this.securityEvents.emit({
           code: 'auth_refresh_hash_mismatch',
@@ -272,11 +272,30 @@ export class AuthService {
   }
 
   private async persistRefreshTokenHash(userId: string, refreshToken: string) {
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 12);
+    const refreshTokenHash = this.hashRefreshToken(refreshToken);
     await this.prisma.client.user.update({
       where: { id: userId },
       data: { refreshTokenHash },
     });
+  }
+
+  private hashRefreshToken(refreshToken: string): string {
+    return `sha256:${createHash('sha256').update(refreshToken).digest('hex')}`;
+  }
+
+  private async verifyStoredRefreshToken(storedHash: string, refreshToken: string): Promise<boolean> {
+    if (storedHash.startsWith('sha256:')) {
+      const candidate = this.hashRefreshToken(refreshToken);
+      const left = Buffer.from(storedHash);
+      const right = Buffer.from(candidate);
+      if (left.length !== right.length) {
+        return false;
+      }
+      return timingSafeEqual(left, right);
+    }
+
+    // Backward compatibility: old records may still use bcrypt hashes.
+    return bcrypt.compare(refreshToken, storedHash);
   }
 
   private async verifyRefreshToken(token: string) {

@@ -6,6 +6,10 @@ type PaginationParams = {
   limit?: number;
 };
 
+type ApiRequestOptions = RequestInit & {
+  redirectOnUnauthorized?: boolean;
+};
+
 function getCookie(name: string) {
   if (typeof document === 'undefined') return null;
   const target = `${name}=`;
@@ -37,19 +41,20 @@ function redirectToLogin() {
   window.location.href = '/login';
 }
 
-async function fetchWithAuth(endpoint: string, options: RequestInit = {}, allowRetry = true) {
-  const method = (options.method ?? 'GET').toUpperCase();
+async function fetchWithAuth(endpoint: string, options: ApiRequestOptions = {}, allowRetry = true) {
+  const { redirectOnUnauthorized = true, ...fetchOptions } = options;
+  const method = (fetchOptions.method ?? 'GET').toUpperCase();
   const needsCsrf = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method);
   const csrfToken = needsCsrf ? getCookie('csrf_token') : null;
   
   const headers = {
     'Content-Type': 'application/json',
     ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
-    ...options.headers,
+    ...fetchOptions.headers,
   };
 
   const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
+    ...fetchOptions,
     headers,
     credentials: 'include',
   });
@@ -66,7 +71,9 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}, allowR
       return fetchWithAuth(endpoint, options, false);
     }
 
-    redirectToLogin();
+    if (redirectOnUnauthorized) {
+      redirectToLogin();
+    }
   }
 
   if (!response.ok) {
@@ -95,7 +102,7 @@ function buildQueryString(params: Record<string, string | number | undefined>) {
 
 export const api = {
   auth: {
-    me: () => fetchWithAuth('/auth/me'),
+    me: () => fetchWithAuth('/auth/me', { redirectOnUnauthorized: false }),
     logout: () => fetchWithAuth('/auth/logout', { method: 'POST' }),
   },
   reports: {

@@ -10,12 +10,18 @@ export class CsrfMiddleware implements NestMiddleware {
   constructor(private readonly securityEvents: SecurityEventsService) {}
 
   async use(req: Request, _res: Response, next: NextFunction) {
+    const requestPath = `${req.baseUrl ?? ''}${req.path ?? ''}` || req.originalUrl?.split('?')[0] || req.path;
+
     if (SAFE_METHODS.has(req.method)) {
       next();
       return;
     }
 
-    if (EXEMPT_PATHS.has(req.path)) {
+    if (
+      EXEMPT_PATHS.has(req.path) ||
+      EXEMPT_PATHS.has(requestPath) ||
+      EXEMPT_PATHS.has(req.originalUrl?.split('?')[0] ?? '')
+    ) {
       next();
       return;
     }
@@ -40,7 +46,7 @@ export class CsrfMiddleware implements NestMiddleware {
         severity: 'high',
         message: 'Solicitud mutable rechazada por CSRF invalido',
         ip: req.ip,
-        route: req.path,
+        route: requestPath,
         metadata: { method: req.method, userAgent: req.headers['user-agent'] },
       });
       throw new UnauthorizedException('CSRF token invalido o faltante');

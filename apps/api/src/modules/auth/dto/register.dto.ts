@@ -2,8 +2,16 @@
 import { PASSWORD_MIN_LENGTH, PASSWORD_POLICY } from '../../../common/utils/password-policy.utils';
 
 export class RegisterDto {
+  @IsOptional()
+  @IsString()
+  fullName?: string;
+
   @IsEmail()
   email!: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
   @IsString()
   @MinLength(PASSWORD_MIN_LENGTH, { message: 'La contrasena debe tener al menos 8 caracteres' })

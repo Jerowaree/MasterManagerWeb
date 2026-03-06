@@ -25,6 +25,16 @@ import { useAuth } from '@/contexts/auth-context';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return null;
+  const target = `${name}=`;
+  const found = document.cookie
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(target));
+  return found ? decodeURIComponent(found.slice(target.length)) : null;
+}
+
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -45,9 +55,13 @@ export default function LoginPage() {
     setLoading(true);
     setServerError(null);
     try {
+      const csrfToken = getCookie('csrf_token');
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({
           ...data,
@@ -181,6 +195,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                  aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
