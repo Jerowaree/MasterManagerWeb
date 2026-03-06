@@ -24,7 +24,7 @@ import {
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
-import { DashboardData } from '@/lib/dashboard-types';
+import { DashboardData, Sale } from '@/lib/dashboard-types';
 
 const chartData = [
   { name: '1 Feb', value: 40000 },
@@ -73,7 +73,34 @@ export default function DashboardPage() {
     customerCount: 862,
     branchCount: 18221,
   };
-  const recentSales = data?.recentSales || [];
+  const recentSales: Sale[] = data?.recentSales ?? [];
+  const fallbackSales: Sale[] = [
+    {
+      id: 'fallback-1',
+      total: 37431,
+      status: 'paid',
+      createdAt: new Date().toISOString(),
+      customer: { name: 'Danny Liu', email: 'danny.liu@ejemplo.com' },
+      branch: null,
+    },
+    {
+      id: 'fallback-2',
+      total: 32431,
+      status: 'paid',
+      createdAt: new Date().toISOString(),
+      customer: { name: 'Maria Lopez', email: 'maria.lopez@ejemplo.com' },
+      branch: null,
+    },
+    {
+      id: 'fallback-3',
+      total: 27431,
+      status: 'paid',
+      createdAt: new Date().toISOString(),
+      customer: { name: 'Jose Perez', email: 'jose.perez@ejemplo.com' },
+      branch: null,
+    },
+  ];
+  const displaySales = recentSales.length > 0 ? recentSales : fallbackSales;
 
   return (
     <div className="space-y-6 md:space-y-8 min-h-screen bg-white dark:bg-transparent pb-10">
@@ -253,8 +280,8 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                {(recentSales.length > 0 ? recentSales : [1, 2, 3]).slice(0, 3).map((sale: any, i) => (
-                  <tr key={i} className="group hover:bg-gray-50/50 dark:hover:bg-white/10 transition-colors">
+                {displaySales.slice(0, 3).map((sale, i) => (
+                  <tr key={sale.id || `sale-${i}`} className="group hover:bg-gray-50/50 dark:hover:bg-white/10 transition-colors">
                     <td className="py-4 flex items-center gap-3.5">
                       <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-fuchsia-500 flex items-center justify-center text-xs font-bold text-white shadow-md shadow-violet-500/20 group-hover:scale-105 transition-transform">
                         {sale.customer?.name?.[0] || 'D'}
@@ -305,7 +332,14 @@ export default function DashboardPage() {
 }
 
 // COMPONENTE STATCARD PULIDO 
-function StatCard({ title, value, trend, positive, subValue, isProgress }: any) {
+function StatCard({ title, value, trend, positive, subValue, isProgress }: {
+  title: string;
+  value: string | number;
+  trend?: string;
+  positive?: boolean;
+  subValue?: string;
+  isProgress?: boolean;
+}) {
   return (
     <div className="bg-white dark:bg-white/5 dark:backdrop-blur-xl p-4 md:p-6 rounded-2xl md:rounded-3xl border border-gray-200/80 dark:border-white/10 flex flex-col justify-between hover:border-violet-300 dark:hover:border-purple-500/30 transition-all shadow-[0_2px_10px_-3px_rgba(0,0,0,0.03)] overflow-hidden relative group min-h-[110px] md:min-h-[140px]">
       

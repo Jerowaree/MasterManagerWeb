@@ -34,6 +34,8 @@ model Company {
   suppliers           Supplier[]
   users               User[]
   cashMovements       CashMovement[]
+  accountsReceivables AccountsReceivable[]
+  receivablePayments  ReceivablePayment[]
 
   @@index([createdAt])
 }
@@ -78,6 +80,7 @@ model Branch {
   sales               Sale[]
   users               User[]
   cashMovements       CashMovement[]
+  accountsReceivables AccountsReceivable[]
 
   @@unique([companyId, id])
   @@index([companyId])
@@ -110,20 +113,21 @@ model User {
 }
 
 model Customer {
-  id             String    @id @default(uuid()) @db.Uuid
-  companyId      String    @db.Uuid
-  branchId       String    @db.Uuid
+  id             String               @id @default(uuid()) @db.Uuid
+  companyId      String               @db.Uuid
+  branchId       String               @db.Uuid
   name           String
   documentType   String
   documentNumber String
   phone          String?
   email          String?
   address        String?
-  createdAt      DateTime  @default(now())
+  createdAt      DateTime             @default(now())
   deletedAt      DateTime?
-  branch         Branch    @relation(fields: [companyId, branchId], references: [companyId, id])
-  company        Company   @relation(fields: [companyId], references: [id])
+  branch         Branch               @relation(fields: [companyId, branchId], references: [companyId, id])
+  company        Company              @relation(fields: [companyId], references: [id])
   sales          Sale[]
+  receivables    AccountsReceivable[]
 
   @@unique([companyId, id])
   @@index([companyId])
@@ -188,6 +192,7 @@ model Sale {
   customer               Customer?            @relation(fields: [companyId, customerId], references: [companyId, id])
   items                  SaleItem[]
   electronicDocuments    ElectronicDocument[]
+  accountsReceivables    AccountsReceivable[]
 
   @@unique([companyId, id])
   @@unique([companyId, idempotencyKey])
@@ -376,6 +381,60 @@ model CashMovement {
   @@index([createdAt])
 }
 
+model AccountsReceivable {
+  id                   String              @id @default(uuid()) @db.Uuid
+  companyId            String              @db.Uuid
+  branchId             String              @db.Uuid
+  customerId           String?             @db.Uuid
+  saleId               String?             @db.Uuid
+  documentRef          String?
+  totalAmount          Decimal             @db.Decimal(12, 2)
+  amountPaid           Decimal             @default(0) @db.Decimal(12, 2)
+  currency             String              @default("PEN")
+  status               ReceivableStatus    @default(open)
+  dueDate              DateTime
+  reminderIntervalDays Int                 @default(3)
+  nextReminderAt       DateTime?
+  lastReminderAt       DateTime?
+  reminderCount        Int                 @default(0)
+  remindersPaused      Boolean             @default(false)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  deletedAt            DateTime?
+  branch               Branch              @relation(fields: [companyId, branchId], references: [companyId, id])
+  company              Company             @relation(fields: [companyId], references: [id])
+  customer             Customer?           @relation(fields: [companyId, customerId], references: [companyId, id])
+  sale                 Sale?               @relation(fields: [saleId], references: [id])
+  payments             ReceivablePayment[]
+
+  @@unique([companyId, id])
+  @@index([companyId])
+  @@index([branchId])
+  @@index([customerId])
+  @@index([status, dueDate])
+  @@index([nextReminderAt])
+  @@index([createdAt])
+}
+
+model ReceivablePayment {
+  id           String             @id @default(uuid()) @db.Uuid
+  companyId    String             @db.Uuid
+  receivableId String             @db.Uuid
+  amount       Decimal            @db.Decimal(12, 2)
+  paymentDate  DateTime           @default(now())
+  method       String?
+  reference    String?
+  createdAt    DateTime           @default(now())
+  deletedAt    DateTime?
+  receivable   AccountsReceivable @relation(fields: [receivableId], references: [id])
+  company      Company            @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, id])
+  @@index([companyId])
+  @@index([receivableId])
+  @@index([paymentDate])
+}
+
 enum CompanyStatus {
   active
   grace
@@ -412,4 +471,11 @@ enum ElectronicDocumentStatus {
 enum SupplierStatus {
   active
   inactive
+}
+
+enum ReceivableStatus {
+  open
+  overdue
+  paid
+  cancelled
 }

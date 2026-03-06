@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Menu,
   X,
+  FileText,
 } from 'lucide-react';
 import { motion, AnimatePresence, easeInOut } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -118,6 +119,7 @@ export default function DashboardLayout({
       <nav className="flex-1 space-y-2 px-3 overflow-y-auto no-scrollbar relative z-10">
         <SidebarItem icon={LayoutDashboard} label="Dashboard" href="/dashboard" active={pathname === '/dashboard'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={ShoppingCart} label="Ventas" href="/dashboard/ventas" active={pathname === '/dashboard/ventas'} isExpanded={expanded} transitionConfig={transitionConfig} />
+        <SidebarItem icon={FileText} label="Cobranza" href="/dashboard/cobranza" active={pathname === '/dashboard/cobranza'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={Package} label="Inventario" href="/dashboard/inventario" active={pathname === '/dashboard/inventario'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={ArrowRightLeft} label="Movimientos" href="/dashboard/movimientos" active={pathname === '/dashboard/movimientos'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={Building2} label="Sucursales" href="/dashboard/sucursales" active={pathname === '/dashboard/sucursales'} isExpanded={expanded} transitionConfig={transitionConfig} />
@@ -250,10 +252,10 @@ export default function DashboardLayout({
 
             <button className="flex items-center gap-2 md:gap-3 pl-1 pr-1 md:pr-3 py-1 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 transition-all group">
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-violet-600 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-shadow">
-                <span className="font-bold text-white text-xs md:text-sm">{user?.email?.[0].toUpperCase() || 'JA'}</span>
+                <span className="font-bold text-white text-xs md:text-sm">{user?.email?.[0].toUpperCase() || 'US'}</span>
               </div>
               <div className="text-left hidden sm:block">
-                <p className="text-sm font-bold text-gray-800 dark:text-white leading-none mb-1">{user?.email?.split('@')[0] || 'Jhon Abad'}</p>
+                <p className="text-sm font-bold text-gray-800 dark:text-white leading-none mb-1">{user?.email?.split('@')[0] || 'Usuario'}</p>
                 <div className="flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3 text-green-500" />
                   <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Admin</p>
@@ -272,7 +274,14 @@ export default function DashboardLayout({
   );
 }
 
-function SidebarItem({ icon: Icon, href, label, active = false, isExpanded, transitionConfig }: any) {
+function SidebarItem({ icon: Icon, href, label, active = false, isExpanded, transitionConfig }: {
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  label: string;
+  active?: boolean;
+  isExpanded: boolean;
+  transitionConfig: { duration: number; ease: number[] | string };
+}) {
   return (
     <Link href={href} className="block">
       <button

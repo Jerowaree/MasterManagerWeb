@@ -196,3 +196,39 @@ export type CashMovement = {
     name?: string | null;
   } | null;
 };
+
+export type ReceivableStatus = 'open' | 'overdue' | 'paid' | 'cancelled' | string;
+
+export type ReceivablePayment = {
+  id: string;
+  amount: number;
+  paymentDate: string;
+  method?: string | null;
+  reference?: string | null;
+  createdAt: string;
+};
+
+export type Receivable = {
+  id: string;
+  totalAmount: number;
+  amountPaid: number;
+  currency: string;
+  status: ReceivableStatus;
+  dueDate: string;
+  documentRef?: string | null;
+  reminderIntervalDays: number;
+  nextReminderAt?: string | null;
+  lastReminderAt?: string | null;
+  reminderCount: number;
+  remindersPaused: boolean;
+  createdAt: string;
+  customer?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+  } | null;
+  branch?: {
+    id: string;
+    name?: string | null;
+  } | null;
+};

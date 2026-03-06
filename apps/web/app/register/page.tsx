@@ -177,8 +177,8 @@ export default function RegisterPage() {
   };
 
   const handleNext = async () => {
-    const activeFields = steps[currentStep].fields;
-    const isValid = await trigger(activeFields as any);
+    const activeFields = steps[currentStep].fields as RegisterFormData;
+    const isValid = await trigger(activeFields);
     if (isValid && currentStep < steps.length - 1) {
       setCurrentStep((value) => value + 1);
     }
@@ -193,7 +193,8 @@ export default function RegisterPage() {
     setServerError(null);
 
     try {
-      const { confirmPassword, ...registerData } = data;
+      const { confirmPassword: _confirmPassword, ...registerData } = data;
+      void _confirmPassword;
       const locale = selectedCountry.locale;
       const csrfToken = getCookie('csrf_token');
 

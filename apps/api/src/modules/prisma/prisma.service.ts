@@ -17,7 +17,9 @@ const TENANT_MODELS = [
   'Subscription', 
   'PaymentLog', 
   'AuditLog',
-  'CashMovement'
+  'CashMovement',
+  'AccountsReceivable',
+  'ReceivablePayment',
 ];
 
 @Injectable()
