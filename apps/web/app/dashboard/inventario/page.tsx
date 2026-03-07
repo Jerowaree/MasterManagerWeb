@@ -14,6 +14,8 @@ import {
   FileSpreadsheet,
   ArrowRightLeft,
   Upload,
+  ChevronDown,
+  Filter
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -493,174 +495,198 @@ export default function InventarioPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-black dark:text-white font-heading">Inventario</h1>
-          <p className="text-gray-500 dark:text-gray-400">Catálogo de productos, categoría y stock por sede.</p>
+    <div className="space-y-6 md:space-y-8 min-h-screen bg-white dark:bg-transparent pb-10">
+      
+      {/* HEADER REESTRUCTURADO PARA MÓVILES */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center justify-between">
+        <div className="flex flex-col gap-1.5 md:gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white tracking-tight">Inventario</h1>
+          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">
+            Catálogo de productos, categoría y stock por sede.
+          </p>
         </div>
-        <div className="flex gap-3">
+        
+        {/* Agrupación de botones permitiendo flex-wrap en móviles */}
+        <div className="flex flex-wrap gap-2.5 md:gap-3 items-center">
           <button
             onClick={loadValorization}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 md:px-5 md:py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md text-gray-700 dark:text-gray-200 rounded-xl md:rounded-2xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] text-sm md:text-base flex-1 sm:flex-none"
           >
-            <BarChart3 className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            Valorización
+            <BarChart3 className="w-4 h-4 text-violet-500" />
+            <span className="truncate">Valorización</span>
           </button>
+          
           <button
             onClick={() => setIsImportHelpOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 md:px-5 md:py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md text-gray-700 dark:text-gray-200 rounded-xl md:rounded-2xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] text-sm md:text-base flex-1 sm:flex-none"
           >
-            <FileSpreadsheet className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            Formato Excel
+            <FileSpreadsheet className="w-4 h-4 text-gray-400" />
+            <span className="truncate">Formato</span>
           </button>
+          
           <button
             onClick={handleImportClick}
             disabled={isImporting}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 md:px-5 md:py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md text-gray-700 dark:text-gray-200 rounded-xl md:rounded-2xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] disabled:opacity-50 text-sm md:text-base flex-1 sm:flex-none"
           >
-            <Upload className="w-5 h-5 text-[#7c3aed]" />
-            {isImporting ? 'Importando...' : 'Importar Excel'}
+            <Upload className="w-4 h-4 text-violet-500" />
+            <span className="truncate">{isImporting ? 'Importando...' : 'Importar'}</span>
           </button>
+          
           <Link
             href="/dashboard/movimientos"
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 md:px-5 md:py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md text-gray-700 dark:text-gray-200 rounded-xl md:rounded-2xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] text-sm md:text-base flex-1 sm:flex-none"
           >
-            <ArrowRightLeft className="w-5 h-5 text-[#7c3aed]" />
-            Movimientos recientes
+            <ArrowRightLeft className="w-4 h-4 text-gray-400" />
+            <span className="truncate">Movimientos</span>
           </Link>
+          
           <button
             onClick={() => setIsProductModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-[#7c3aed] text-white rounded-2xl font-bold hover:bg-[#6d28d9] transition-all shadow-lg shadow-[#7c3aed]/20"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 md:px-6 md:py-3 bg-violet-600 hover:bg-violet-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-xl md:rounded-2xl font-medium transition-all shadow-lg shadow-violet-600/20 active:scale-[0.98] text-sm md:text-base w-full sm:w-auto"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 md:w-5 md:h-5" />
             Nuevo producto
           </button>
         </div>
       </div>
 
+      {/* ALERTA DE STOCK */}
       {lowStockTotal > 0 && (
-        <div className="rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 px-5 py-4">
-          <div className="flex items-center gap-2 mb-2 text-red-700 dark:text-red-400">
-            <AlertTriangle className="w-4 h-4" />
-            <p className="text-sm font-black uppercase tracking-wider">
+        <div className="rounded-3xl border border-rose-200/80 dark:border-rose-500/20 bg-rose-50/80 dark:bg-rose-500/10 dark:backdrop-blur-md px-5 py-4 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 blur-xl rounded-bl-full -mr-4 -mt-4 pointer-events-none" />
+          <div className="flex items-center gap-2 mb-3 text-rose-600 dark:text-rose-400 relative z-10">
+            <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 animate-pulse" />
+            <p className="text-xs md:text-sm font-bold uppercase tracking-wider">
               Alerta de stock bajo ({lowStockTotal})
             </p>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5 relative z-10">
             {lowStockItems.map((item) => (
-              <p key={item.productId} className="text-xs font-semibold text-red-700 dark:text-red-400">
-                {item.name} ({item.productId}) - stock {Number(item.quantity)} / mínimo {Number(item.minStock)}
+              <p key={item.productId} className="text-xs md:text-sm font-medium text-rose-700 dark:text-rose-300">
+                <span className="font-semibold">{item.name}</span> <span className="opacity-75">({item.productId})</span> - stock <span className="font-bold">{Number(item.quantity)}</span> / mínimo {Number(item.minStock)}
               </p>
             ))}
           </div>
         </div>
       )}
 
-      <div className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-200 dark:border-white/5 flex flex-col md:flex-row gap-4 justify-between bg-gray-50 dark:bg-[#1a1a1a]/50">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por código, nombre o categoría..."
-              className="pl-11 pr-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl w-full focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
+      {/* FILTROS Y BÚSQUEDA */}
+      <div className="flex flex-col lg:flex-row gap-3 md:gap-4 w-full">
+        <div className="flex-1 relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar por código, nombre o categoría..."
+            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md rounded-2xl text-sm font-medium text-gray-800 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all shadow-sm"
+          />
+        </div>
+        
+        <div className="flex flex-row gap-3 w-full lg:w-auto">
+          {/* Selector de Sede con estilo personalizado */}
+          <div className="flex-1 lg:flex-none relative group">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+              <Filter className="w-4 h-4 text-gray-400 group-hover:text-violet-500 transition-colors" />
+            </div>
             <select
               value={selectedBranchId}
               onChange={(e) => {
                 setSelectedBranchId(e.target.value);
                 setProductsPage(1);
               }}
-              className="px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white"
+              className="w-full lg:min-w-[200px] pl-10 pr-10 py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md rounded-2xl text-sm font-semibold text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 appearance-none cursor-pointer shadow-sm transition-all"
             >
-              <option value="">Todas las sedes</option>
+              <option value="" className="bg-white dark:bg-[#1a1a2e]">Todas las sedes</option>
               {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
+                <option key={branch.id} value={branch.id} className="bg-white dark:bg-[#1a1a2e]">
                   {branch.name}
                 </option>
               ))}
             </select>
-
-            <button
-              onClick={handleExportProducts}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-green-600 dark:text-green-400" />
-              Exportar
-            </button>
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-violet-500 transition-colors" />
           </div>
+          
+          <button
+            onClick={handleExportProducts}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md rounded-2xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors shadow-sm flex-1 lg:flex-none"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+            <span className="truncate">Exportar</span>
+          </button>
         </div>
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-[#1a1a1a]/50">
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Código</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Producto</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Categoría</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Precio</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Stock</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Stock Mín.</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Actualizado</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5 text-right">Acciones</th>
+      {/* TABLA PRINCIPAL */}
+      <div className="bg-white dark:bg-white/5 dark:backdrop-blur-xl border border-gray-200/80 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full min-w-[900px] text-sm text-left border-collapse table-fixed">
+            <thead className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/10">
+              <tr>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap w-[12%]">Código</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap w-[20%]">Producto</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap w-[15%]">Categoría</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap text-right w-[10%]">Precio</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap text-right w-[10%]">Stock</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap text-right w-[10%]">Stock Mín.</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap w-[13%]">Actualizado</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap text-right w-[10%]">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
+            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
               {loading && filteredProducts.length === 0 ? (
-                Array.from({ length: 3 }).map((_, index) => (
-                  <tr key={index} className="animate-pulse">
-                    <td colSpan={8} className="px-6 py-8">
-                      <div className="h-4 bg-gray-200 dark:bg-white/10 rounded w-full"></div>
+                Array.from({ length: 6 }).map((_, index) => (
+                  <tr key={`skeleton-${index}`}>
+                    <td colSpan={8} className="px-6 py-5">
+                      <div className="h-4 bg-gray-100 dark:bg-white/5 rounded-full animate-pulse w-full"></div>
                     </td>
                   </tr>
                 ))
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <tr key={product.productId} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-sm font-bold text-black dark:text-white">{product.productId}</td>
-                    <td className="px-6 py-4 text-sm text-black dark:text-white">{product.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{product.category}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-black dark:text-white text-right">S/ {Number(product.price).toFixed(2)}</td>
-                    <td className={`px-6 py-4 text-sm font-bold text-right ${product.isLowStock ? 'text-red-600 dark:text-red-400' : 'text-black dark:text-white'}`}>
+                  <tr key={product.productId} className="group hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 font-bold text-gray-800 dark:text-white truncate">{product.productId}</td>
+                    <td className="px-6 py-4 font-medium text-gray-800 dark:text-white truncate">{product.name}</td>
+                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300 truncate">{product.category}</td>
+                    <td className="px-6 py-4 font-bold text-gray-800 dark:text-white text-right">S/ {Number(product.price).toFixed(2)}</td>
+                    <td className={`px-6 py-4 font-bold text-right ${product.isLowStock ? 'text-rose-600 dark:text-rose-400' : 'text-gray-800 dark:text-white'}`}>
                       {Number(product.quantity)}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-black dark:text-white text-right">{Number(product.minStock)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{new Date(product.updatedAt).toLocaleString()}</td>
-                    <td className="px-6 py-4 text-right space-x-2">
+                    <td className="px-6 py-4 font-medium text-gray-500 dark:text-gray-400 text-right">{Number(product.minStock)}</td>
+                    <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 truncate">{new Date(product.updatedAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-right whitespace-nowrap space-x-2">
                       <button
                         onClick={() => handleOpenStockModal(product)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-white/5 px-3 py-2 text-xs font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/5"
+                        className="inline-flex items-center justify-center p-2.5 rounded-xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-purple-400 hover:bg-violet-50 dark:hover:bg-purple-500/10 hover:border-violet-200 dark:hover:border-purple-500/30 transition-all shadow-sm"
+                        title="Ajustar Stock"
                       >
-                        <Boxes className="w-3.5 h-3.5" />
-                        Stock
+                        <Boxes className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleOpenEditModal(product)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-white/5 px-3 py-2 text-xs font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/5"
+                        className="inline-flex items-center justify-center p-2.5 rounded-xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-all shadow-sm"
+                        title="Editar Producto"
                       >
-                        <Pencil className="w-3.5 h-3.5" />
-                        Editar
+                        <Pencil className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-6 py-20 text-center text-gray-400 dark:text-gray-500 italic">
-                    No hay productos registrados en inventario.
+                  <td colSpan={8} className="px-6 py-20 text-center text-gray-400 italic">
+                    No hay productos registrados en el inventario.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+      </div>
 
+      {/* CONTENEDOR DE PAGINACIÓN CORREGIDO (Sin estilos base para evitar la caja fantasma) */}
+      <div className="flex justify-center w-full mt-2">
         <PaginationControls
           meta={productsPagination}
           isLoading={productsQuery.isFetching}
@@ -668,6 +694,7 @@ export default function InventarioPage() {
         />
       </div>
 
+      {/* MODAL: REGISTRAR PRODUCTO */}
       <Modal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
@@ -676,19 +703,19 @@ export default function InventarioPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Código</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Código</label>
               <input
                 type="text"
                 required
                 value={formData.productId}
                 onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
                 placeholder="SKU-001"
-                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Precio</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Precio</label>
               <input
                 type="number"
                 required
@@ -697,53 +724,56 @@ export default function InventarioPage() {
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="0.00"
-                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-right text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nombre</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Nombre</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Nombre comercial del producto"
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Categoría</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
             <input
               type="text"
               required
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               placeholder="Ej: Bebidas, Lácteos, Tecnología"
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2 sm:col-span-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Sede (si agregas stock inicial)</label>
-              <select
-                value={formData.branchId}
-                onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
-                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
-              >
-                <option value="">Sin stock inicial</option>
-                {branches.map((branch) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sede (Stock inicial)</label>
+              <div className="relative group">
+                <select
+                  value={formData.branchId}
+                  onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
+                >
+                  <option value="" className="dark:bg-gray-900">Sin stock inicial</option>
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id} className="dark:bg-gray-900">
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-violet-500 transition-colors" />
+              </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Stock inicial</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Stock inicial</label>
               <input
                 type="number"
                 min="0"
@@ -751,13 +781,13 @@ export default function InventarioPage() {
                 value={formData.initialStock}
                 onChange={(e) => setFormData({ ...formData, initialStock: e.target.value })}
                 placeholder="0"
-                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-right text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Costo inicial (si hay stock)</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Costo inicial (si hay stock)</label>
             <input
               type="number"
               min="0.01"
@@ -765,15 +795,15 @@ export default function InventarioPage() {
               value={formData.initialCost}
               onChange={(e) => setFormData({ ...formData, initialCost: e.target.value })}
               placeholder="0.00"
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-right text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
             />
           </div>
 
-          <div className="pt-6 flex justify-end">
+          <div className="pt-4">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-8 py-4 bg-[#7c3aed] text-white rounded-2xl font-bold hover:bg-[#6d28d9] transition-all shadow-xl shadow-[#7c3aed]/20 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-violet-600 hover:bg-violet-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-violet-600/20 active:scale-[0.98] disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Guardar producto
@@ -782,6 +812,7 @@ export default function InventarioPage() {
         </form>
       </Modal>
 
+      {/* MODAL: EDITAR PRODUCTO */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -789,39 +820,39 @@ export default function InventarioPage() {
       >
         <form onSubmit={handleEditSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Código</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Código</label>
             <input
               type="text"
               value={editFormData.productId}
               disabled
-              className="w-full px-5 py-3 bg-gray-100 dark:bg-[#1e1e1e] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm"
+              className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-500 dark:text-gray-400 opacity-70 cursor-not-allowed"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nombre</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Nombre</label>
             <input
               type="text"
               required
               value={editFormData.name}
               onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Categoría</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
             <input
               type="text"
               required
               value={editFormData.category}
               onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Precio</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Precio</label>
             <input
               type="number"
               required
@@ -829,27 +860,27 @@ export default function InventarioPage() {
               step="0.01"
               value={editFormData.price}
               onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-right text-gray-800 dark:text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Stock mínimo de alerta</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Stock mínimo de alerta</label>
             <input
               type="number"
               min="0"
               step="0.01"
               value={editFormData.minStock}
               onChange={(e) => setEditFormData({ ...editFormData, minStock: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-right text-gray-800 dark:text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
             />
           </div>
 
-          <div className="pt-6 flex justify-end">
+          <div className="pt-4">
             <button
               type="submit"
               disabled={isUpdating}
-              className="flex items-center gap-2 px-8 py-4 bg-[#7c3aed] text-white rounded-2xl font-bold hover:bg-[#6d28d9] transition-all shadow-xl shadow-[#7c3aed]/20 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-violet-600 hover:bg-violet-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-violet-600/20 active:scale-[0.98] disabled:opacity-50"
             >
               {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Guardar cambios
@@ -858,44 +889,48 @@ export default function InventarioPage() {
         </form>
       </Modal>
 
+      {/* MODAL: AJUSTAR STOCK */}
       <Modal
         isOpen={isStockModalOpen}
         onClose={() => setIsStockModalOpen(false)}
-        title="Ajustar stock del producto"
+        title="Ajustar stock"
       >
         <form onSubmit={handleStockSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Producto</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Producto</label>
             <input
               type="text"
               value={stockFormData.productId}
               disabled
-              className="w-full px-5 py-3 bg-gray-100 dark:bg-[#1e1e1e] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm"
+              className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-500 dark:text-gray-400 opacity-70 cursor-not-allowed"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Sede</label>
-            <select
-              value={stockFormData.branchId}
-              onChange={async (e) => {
-                const branchId = e.target.value;
-                setStockFormData((prev) => ({ ...prev, branchId }));
-                if (branchId && stockFormData.productId) {
-                  await loadCurrentStock(stockFormData.productId, branchId);
-                }
-              }}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
-            >
-              <option value="">Selecciona una sede</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sede</label>
+            <div className="relative group">
+              <select
+                value={stockFormData.branchId}
+                onChange={async (e) => {
+                  const branchId = e.target.value;
+                  setStockFormData((prev) => ({ ...prev, branchId }));
+                  if (branchId && stockFormData.productId) {
+                    await loadCurrentStock(stockFormData.productId, branchId);
+                  }
+                }}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
+              >
+                <option value="" className="dark:bg-gray-900">Selecciona una sede</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id} className="dark:bg-gray-900">
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-violet-500 transition-colors" />
+            </div>
             {!stockFormData.branchId && (
-              <p className="text-xs font-semibold text-red-600 dark:text-red-400">
+              <p className="text-xs font-semibold text-rose-500 dark:text-rose-400 mt-1">
                 Selecciona una sede para consultar y actualizar el stock.
               </p>
             )}
@@ -903,16 +938,16 @@ export default function InventarioPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Stock actual</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Stock actual</label>
               <input
                 type="number"
                 value={stockFormData.currentQuantity}
                 disabled
-                className="w-full px-5 py-3 bg-gray-100 dark:bg-[#1e1e1e] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right"
+                className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-bold text-sm text-gray-500 dark:text-gray-400 text-right opacity-70 cursor-not-allowed"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nuevo stock objetivo</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Nuevo stock objetivo</label>
               <input
                 type="number"
                 min="0"
@@ -920,13 +955,13 @@ export default function InventarioPage() {
                 value={stockFormData.targetQuantity}
                 disabled={!stockFormData.branchId}
                 onChange={(e) => setStockFormData((prev) => ({ ...prev, targetQuantity: e.target.value }))}
-                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white disabled:bg-gray-100 dark:disabled:bg-[#2a2a2a] disabled:text-gray-500 dark:disabled:text-gray-400"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-right text-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Costo unitario para ajuste</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Costo unitario para ajuste</label>
             <input
               type="number"
               min="0.01"
@@ -934,15 +969,15 @@ export default function InventarioPage() {
               value={stockFormData.unitCost}
               disabled={!stockFormData.branchId}
               onChange={(e) => setStockFormData((prev) => ({ ...prev, unitCost: e.target.value }))}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl outline-none transition-all font-bold text-sm text-right text-black dark:text-white disabled:bg-gray-100 dark:disabled:bg-[#2a2a2a] disabled:text-gray-500 dark:disabled:text-gray-400"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-right text-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
             />
           </div>
 
-          <div className="pt-6 flex justify-end">
+          <div className="pt-4">
             <button
               type="submit"
               disabled={isAdjustingStock || !stockFormData.branchId}
-              className="flex items-center gap-2 px-8 py-4 bg-[#7c3aed] text-white rounded-2xl font-bold hover:bg-[#6d28d9] transition-all shadow-xl shadow-[#7c3aed]/20 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-violet-600 hover:bg-violet-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-violet-600/20 active:scale-[0.98] disabled:opacity-50"
             >
               {isAdjustingStock ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Aplicar ajuste
@@ -951,83 +986,82 @@ export default function InventarioPage() {
         </form>
       </Modal>
 
+      {/* MODAL: VALORIZACIÓN */}
       <Modal isOpen={isValModalOpen} onClose={() => setIsValModalOpen(false)} title="Valorización de inventario">
         {valorization && (
-          <div className="space-y-8">
-            <div className="p-8 bg-gradient-to-br from-purple-600 to-[#7c3aed] rounded-3xl text-white shadow-xl shadow-purple-200 dark:shadow-purple-900/30">
-              <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Valor total del almacén</p>
-              <p className="text-4xl font-bold tracking-tight italic">S/ {Number(valorization.totalPortfolioValue).toFixed(2)}</p>
+          <div className="space-y-6">
+            <div className="p-6 md:p-8 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-3xl text-white shadow-xl shadow-violet-500/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-2xl rounded-bl-full -mr-8 -mt-8 pointer-events-none" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80 mb-1 relative z-10">Valor total del almacén</p>
+              <p className="text-3xl md:text-4xl font-bold tracking-tight relative z-10">S/ {Number(valorization.totalPortfolioValue).toFixed(2)}</p>
             </div>
 
-            <div className="space-y-4">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                <PieChart className="w-3 h-3" />
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <PieChart className="w-3.5 h-3.5" />
                 Desglose por producto
               </label>
-              <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
                 {valorization.products.map((product) => (
-                  <div key={product.productId} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-2xl">
+                  <div key={product.productId} className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl hover:border-violet-200 dark:hover:border-purple-500/30 transition-colors">
                     <div>
-                      <h4 className="font-bold text-black dark:text-white text-sm">{product.productId}</h4>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">Stock: {product.stock}</p>
+                      <h4 className="font-semibold text-gray-800 dark:text-white text-sm">{product.productId}</h4>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Stock: {product.stock}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-black text-black dark:text-white italic">S/ {Number(product.totalValue).toFixed(2)}</p>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium italic">u: S/ {Number(product.latestCost).toFixed(2)}</p>
+                      <p className="text-sm font-bold text-gray-800 dark:text-white">S/ {Number(product.totalValue).toFixed(2)}</p>
+                      <p className="text-[10px] text-gray-400 font-medium mt-0.5">u: S/ {Number(product.latestCost).toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <button
-              onClick={handleExportValorization}
-              className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all shadow-xl shadow-black/10 italic flex items-center justify-center gap-2"
-            >
-              <FileSpreadsheet className="w-5 h-5 text-green-400 dark:text-green-600" />
-              Exportar valorización a Excel
-            </button>
+            <div className="pt-2">
+              <button
+                onClick={handleExportValorization}
+                className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-bold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg shadow-black/5 flex items-center justify-center gap-2 active:scale-[0.98]"
+              >
+                <FileSpreadsheet className="w-5 h-5 text-emerald-400 dark:text-emerald-600" />
+                Exportar a Excel
+              </button>
+            </div>
           </div>
         )}
       </Modal>
 
+      {/* MODAL: AYUDA DE IMPORTACIÓN */}
       <Modal
         isOpen={isImportHelpOpen}
         onClose={() => setIsImportHelpOpen(false)}
         title="Formato de importación"
       >
         <div className="space-y-6">
-          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-            <p>Campos obligatorios: Código, Nombre, Categoría, Precio.</p>
-            <p>Opcionales: StockMínimo, StockInicial, CostoInicial, BranchId.</p>
-            <p>Si StockInicial &gt; 0, se recomienda incluir BranchId.</p>
-            <p>Máximo recomendado: 500 filas por archivo.</p>
+          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 bg-violet-50/50 dark:bg-purple-500/10 p-4 rounded-2xl border border-violet-100 dark:border-purple-500/20">
+            <p><strong className="text-violet-700 dark:text-purple-400">Obligatorios:</strong> Código, Nombre, Categoría, Precio.</p>
+            <p><strong className="text-violet-700 dark:text-purple-400">Opcionales:</strong> StockMínimo, StockInicial, CostoInicial, BranchId.</p>
+            <p className="text-xs mt-2 opacity-80 italic">* Si StockInicial &gt; 0, debes incluir BranchId.</p>
+            <p className="text-xs opacity-80 italic">* Máximo recomendado: 500 filas.</p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+          <div className="overflow-x-auto rounded-xl border border-gray-200/80 dark:border-white/10 no-scrollbar">
+            <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
               <thead>
-                <tr className="bg-gray-50 dark:bg-[#1a1a1a]/50">
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Código</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Nombre</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Categoría</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Precio</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">StockMínimo</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">StockInicial</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">CostoInicial</th>
-                  <th className="px-3 py-2 font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">BranchId</th>
+                <tr className="bg-gray-50/50 dark:bg-white/5">
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-white/10">Código</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-white/10">Nombre</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-white/10">Categoría</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-white/10">Precio</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-white/10">StockInicial</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-white/5">
+              <tbody className="divide-y divide-gray-100 dark:divide-white/5 bg-white dark:bg-transparent">
                 <tr>
-                  <td className="px-3 py-2 text-black dark:text-white">SKU-001</td>
-                  <td className="px-3 py-2 text-black dark:text-white">Producto A</td>
-                  <td className="px-3 py-2 text-black dark:text-white">Bebidas</td>
-                  <td className="px-3 py-2 text-black dark:text-white">12.50</td>
-                  <td className="px-3 py-2 text-black dark:text-white">5</td>
-                  <td className="px-3 py-2 text-black dark:text-white">10</td>
-                  <td className="px-3 py-2 text-black dark:text-white">8.90</td>
-                  <td className="px-3 py-2 text-black dark:text-white">{selectedBranchId || 'branch-uuid'}</td>
+                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium">SKU-001</td>
+                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300">Producto A</td>
+                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300">Bebidas</td>
+                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300">12.50</td>
+                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300">10</td>
                 </tr>
               </tbody>
             </table>

@@ -12,7 +12,8 @@ import {
   ReceiptText,
   FileSpreadsheet,
   Mail,
-  Trash2
+  Trash2,
+  ChevronDown
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -349,103 +350,120 @@ export default function VentasPage() {
   }, [productsQuery.error, showToast]);
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-black dark:text-white font-heading">Ventas</h1>
-          <p className="text-gray-500 dark:text-gray-400">Gestiona y visualiza todas las transacciones de tus sedes.</p>
+    <div className="space-y-6 md:space-y-8 min-h-screen bg-white dark:bg-transparent pb-10">
+      
+      {/* HEADER REESTRUCTURADO PARA MÓVILES */}
+      <div className="flex flex-col gap-1.5 md:gap-2">
+        <div className="flex items-center justify-between w-full gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white tracking-tight truncate">
+            Ventas
+          </h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSendEmail}
+              className="hidden sm:flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] text-sm"
+            >
+              <Mail className="w-4 h-4 text-violet-500" />
+              <span>Reporte</span>
+            </button>
+            <button
+              onClick={loadCashClosing}
+              className="flex items-center justify-center gap-2 px-3.5 py-2.5 md:px-4 md:py-2.5 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] text-sm shrink-0"
+            >
+              <Calculator className="w-4 h-4 text-gray-400" />
+              <span className="hidden md:inline">Cierre de Caja</span>
+            </button>
+            <button
+              onClick={() => {
+                setFormError('');
+                setIsModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-1.5 md:gap-2 px-3.5 py-2.5 md:px-6 md:py-3 bg-violet-600 hover:bg-violet-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-xl md:rounded-2xl font-medium transition-all shadow-lg shadow-violet-600/20 active:scale-[0.98] text-sm md:text-base shrink-0"
+            >
+              <Plus className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline">Nueva venta</span>
+              <span className="sm:hidden">Nueva</span>
+            </button>
+          </div>
+        </div>
+        <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">
+          Gestiona y visualiza todas las transacciones de tus sedes.
+        </p>
+      </div>
+
+      {/* BUSCADOR Y EXPORTAR */}
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
+        <div className="flex-1 relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por cliente o ID..."
+            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md rounded-2xl text-sm font-medium text-gray-800 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all shadow-sm"
+          />
         </div>
         <div className="flex gap-3">
           <button
-            onClick={handleSendEmail}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm w-fit"
+            onClick={handleExportSales}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md rounded-2xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors shadow-sm"
           >
-            <Mail className="w-5 h-5 text-[#7c3aed]" />
-            Enviar Reporte
+            <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+            <span>Exportar</span>
           </button>
-          <button
-            onClick={loadCashClosing}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm w-fit"
-          >
-            <Calculator className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-            Cierre de Caja
-          </button>
-          <button
-            onClick={() => {
-              setFormError('');
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-6 py-3 bg-[#7c3aed] text-white rounded-2xl font-bold hover:bg-[#6d28d9] transition-all shadow-lg shadow-[#7c3aed]/20 w-fit"
-          >
-            <Plus className="w-5 h-5" />
-            Nueva Venta
+          <button className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 dark:backdrop-blur-md rounded-2xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <span>Filtros</span>
           </button>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-[#141414] rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-200 dark:border-white/5 flex flex-col md:flex-row gap-4 justify-between bg-gray-50 dark:bg-[#1a1a1a]/50">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-            <input
-              type="text"
-              placeholder="Buscar por cliente o ID..."
-              className="pl-11 pr-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl w-full focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={handleExportSales}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-green-600 dark:text-green-400" />
-              Exportar
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl text-sm font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-              <Filter className="w-4 h-4" />
-              Filtros
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-[#1a1a1a]/50">
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">ID</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Cliente</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Sede</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Fecha</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Total</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-white/5">Estado</th>
+      {/* TABLA PRINCIPAL */}
+      <div className="bg-white dark:bg-white/5 dark:backdrop-blur-xl border border-gray-200/80 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full min-w-[800px] text-sm text-left border-collapse table-fixed">
+            <thead className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/10">
+              <tr>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap w-[15%]">ID</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap w-[25%]">Cliente</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap w-[20%]">Sede</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap w-[15%]">Fecha</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap text-right w-[15%]">Total</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap text-center w-[10%]">Estado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
+            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
               {loading && sales.length === 0 ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan={6} className="px-6 py-8">
-                      <div className="h-4 bg-gray-200 dark:bg-white/10 rounded w-full"></div>
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={`skeleton-${i}`}>
+                    <td colSpan={6} className="px-6 py-5">
+                      <div className="h-4 w-full bg-gray-100 dark:bg-white/5 rounded-full animate-pulse" />
                     </td>
                   </tr>
                 ))
               ) : sales.length > 0 ? (
                 sales.map((sale) => (
-                  <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-400 dark:text-gray-500">#{sale.id.slice(0, 8)}</td>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-sm text-black dark:text-white">{sale.customer?.name || 'Venta Rápida'}</div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500">{sale.customer?.email || 'Sin email'}</div>
+                  <tr key={sale.id} className="group hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      #{sale.id.slice(0, 8)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 font-medium">{sale.branch?.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{new Date(sale.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 font-bold text-sm text-black dark:text-white">S/ {Number(sale.total).toFixed(2)}</td>
                     <td className="px-6 py-4">
+                      <p className="font-bold text-gray-800 dark:text-white truncate">{sale.customer?.name || 'Venta Rápida'}</p>
+                      <p className="text-xs font-medium text-gray-400 truncate mt-0.5">{sale.customer?.email || 'Sin email'}</p>
+                    </td>
+                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-medium truncate">
+                      {sale.branch?.name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                      {new Date(sale.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 font-bold text-gray-800 dark:text-white text-right whitespace-nowrap">
+                      S/ {Number(sale.total).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${
                           sale.status === 'paid'
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                            : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20'
+                            : 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-500/20'
                         }`}
                       >
                         {sale.status === 'paid' ? 'Completado' : 'Pendiente'}
@@ -455,7 +473,7 @@ export default function VentasPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-gray-400 dark:text-gray-500 italic">
+                  <td colSpan={6} className="px-6 py-16 text-center text-gray-400 italic">
                     No hay ventas registradas.
                   </td>
                 </tr>
@@ -463,6 +481,10 @@ export default function VentasPage() {
             </tbody>
           </table>
         </div>
+      </div>
+      
+      {/* PAGINACIÓN */}
+      <div className="flex justify-center w-full mt-2">
         <PaginationControls
           meta={salesPagination}
           isLoading={salesQuery.isFetching}
@@ -470,68 +492,70 @@ export default function VentasPage() {
         />
       </div>
 
+      {/* MODAL: CIERRE DE CAJA */}
       <Modal isOpen={isCashModalOpen} onClose={() => setIsCashModalOpen(false)} title="Resumen de Cierre de Caja">
         {cashClosing && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-100 dark:border-purple-800/30">
+            <div className="flex items-center justify-between p-4 md:p-5 bg-violet-50/50 dark:bg-purple-500/10 rounded-2xl border border-violet-100 dark:border-purple-500/20 shadow-sm">
               <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-[#7c3aed] dark:text-purple-400" />
-                <span className="font-bold text-black dark:text-white italic">Fecha del reporte:</span>
+                <Calendar className="w-5 h-5 text-violet-600 dark:text-purple-400" />
+                <span className="font-semibold text-gray-800 dark:text-white">Fecha del reporte:</span>
               </div>
-              <span className="text-sm font-black text-[#7c3aed] dark:text-purple-400 uppercase tracking-widest">
+              <span className="text-sm font-bold text-violet-600 dark:text-purple-300 uppercase tracking-widest">
                 {new Date(cashClosing.date).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-gray-50 dark:bg-[#1e1e1e] rounded-3xl border border-gray-200 dark:border-white/5">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">Total Ventas</p>
-                <p className="text-2xl font-bold text-black dark:text-white italic">S/ {Number(cashClosing.totalAmount).toFixed(2)}</p>
+              <div className="p-6 bg-gray-50 dark:bg-white/5 dark:backdrop-blur-md rounded-3xl border border-gray-200/80 dark:border-white/10 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Total Ventas</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white tracking-tight">S/ {Number(cashClosing.totalAmount).toFixed(2)}</p>
               </div>
-              <div className="p-6 bg-gray-50 dark:bg-[#1e1e1e] rounded-3xl border border-gray-200 dark:border-white/5">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">Operaciones</p>
-                <p className="text-2xl font-bold text-black dark:text-white italic">{cashClosing.count}</p>
+              <div className="p-6 bg-gray-50 dark:bg-white/5 dark:backdrop-blur-md rounded-3xl border border-gray-200/80 dark:border-white/10 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Operaciones</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white tracking-tight">{cashClosing.count}</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                <ReceiptText className="w-3 h-3" />
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <ReceiptText className="w-3.5 h-3.5" />
                 Detalle de Operaciones de Hoy
               </label>
-              <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+              <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                 {cashClosing.sales.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between p-3 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-xl hover:border-purple-200 dark:hover:border-purple-800/50 transition-all">
+                  <div key={s.id} className="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl hover:border-violet-200 dark:hover:border-purple-500/30 transition-all shadow-sm">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-black dark:text-white">{s.customer?.name || 'Venta Rápida'}</span>
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase">{s.branch?.name}</span>
+                      <span className="text-sm font-semibold text-gray-800 dark:text-white">{s.customer?.name || 'Venta Rápida'}</span>
+                      <span className="text-[10px] text-gray-400 font-medium uppercase mt-0.5">{s.branch?.name}</span>
                     </div>
-                    <span className="text-sm font-black text-black dark:text-white italic">S/ {Number(s.total).toFixed(2)}</span>
+                    <span className="text-sm font-bold text-gray-800 dark:text-white">S/ {Number(s.total).toFixed(2)}</span>
                   </div>
                 ))}
-                {cashClosing.sales.length === 0 && <p className="text-center py-10 text-gray-400 dark:text-gray-500 text-xs italic">Sin movimientos hoy.</p>}
+                {cashClosing.sales.length === 0 && <p className="text-center py-10 text-gray-400 text-xs italic">Sin movimientos hoy.</p>}
               </div>
             </div>
 
-            <div className="pt-6 grid grid-cols-2 gap-3">
+            <div className="pt-4 grid grid-cols-2 gap-3">
               <button
                 onClick={() => window.print()}
-                className="py-4 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 text-black dark:text-white rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm italic flex items-center justify-center gap-2"
+                className="py-3.5 md:py-4 bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 text-gray-700 dark:text-white rounded-2xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-[0.98]"
               >
-                Imprimir Reporte Z
+                Imprimir Reporte
               </button>
               <button
                 onClick={handleExportCashClosing}
-                className="py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all shadow-xl shadow-black/10 italic flex items-center justify-center gap-2"
+                className="py-3.5 md:py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg shadow-black/5 flex items-center justify-center gap-2 active:scale-[0.98]"
               >
-                <FileSpreadsheet className="w-5 h-5 text-green-400 dark:text-green-600" />
-                Excel
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
+                Exportar Excel
               </button>
             </div>
           </div>
         )}
       </Modal>
 
+      {/* MODAL: REGISTRAR VENTA */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => {
@@ -542,45 +566,51 @@ export default function VentasPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Cliente (Opcional)</label>
-            <select
-              value={formData.customerId}
-              onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
-            >
-              <option value="">Venta Rápida (Sin Cliente)</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Cliente (Opcional)</label>
+            <div className="relative group">
+              <select
+                value={formData.customerId}
+                onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
+              >
+                <option value="" className="dark:bg-gray-900">Venta Rápida (Sin Cliente)</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id} className="dark:bg-gray-900">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-violet-500 transition-colors" />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Sede</label>
-            <select
-              required
-              value={formData.branchId}
-              onChange={(e) => handleBranchChange(e.target.value)}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
-            >
-              <option value="">Selecciona una sede</option>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sede</label>
+            <div className="relative group">
+              <select
+                required
+                value={formData.branchId}
+                onChange={(e) => handleBranchChange(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
+              >
+                <option value="" className="dark:bg-gray-900">Selecciona una sede</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id} className="dark:bg-gray-900">
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-violet-500 transition-colors" />
+            </div>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Productos</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Productos</label>
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-[#1e1e1e] hover:bg-gray-200 dark:hover:bg-white/10 text-black dark:text-white transition-colors"
+                className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-violet-50 dark:bg-purple-500/10 hover:bg-violet-100 dark:hover:bg-purple-500/20 text-violet-600 dark:text-purple-300 transition-colors"
               >
                 + Agregar
               </button>
@@ -589,20 +619,23 @@ export default function VentasPage() {
             <div className="space-y-2">
               {formData.items.map((item, index) => (
                 <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                  <select
-                    required
-                    value={item.productId}
-                    onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                    className="col-span-5 px-3 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl text-sm font-bold outline-none text-black dark:text-white"
-                    disabled={!formData.branchId || loadingProducts}
-                  >
-                    <option value="">{loadingProducts ? 'Cargando productos...' : 'Selecciona producto'}</option>
-                    {products.map((p) => (
-                      <option key={`${p.branchId}-${p.productId}`} value={p.productId}>
-                        {p.name} [{p.category}] (Stock: {p.quantity}, Precio: S/ {Number(p.price).toFixed(2)})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="col-span-5 relative group">
+                    <select
+                      required
+                      value={item.productId}
+                      onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
+                      className="w-full px-3 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl text-sm font-medium text-gray-800 dark:text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
+                      disabled={!formData.branchId || loadingProducts}
+                    >
+                      <option value="" className="dark:bg-gray-900">{loadingProducts ? 'Cargando...' : 'Producto'}</option>
+                      {products.map((p) => (
+                        <option key={`${p.branchId}-${p.productId}`} value={p.productId} className="dark:bg-gray-900">
+                          {p.name} (Stock: {p.quantity})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none group-focus-within:text-violet-500 transition-colors" />
+                  </div>
 
                   <input
                     required
@@ -611,7 +644,7 @@ export default function VentasPage() {
                     step="0.01"
                     value={item.quantity}
                     onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                    className="col-span-3 px-3 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl text-sm text-right font-bold outline-none text-black dark:text-white"
+                    className="col-span-3 px-3 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl text-sm text-right font-medium text-gray-800 dark:text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
                     placeholder="Cant."
                   />
 
@@ -622,7 +655,7 @@ export default function VentasPage() {
                     step="0.01"
                     value={item.unitPrice}
                     readOnly
-                    className="col-span-3 px-3 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl text-sm text-right font-bold outline-none text-black dark:text-white"
+                    className="col-span-3 px-3 py-3 bg-gray-100/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-2xl text-sm text-right font-medium text-gray-500 dark:text-gray-400 outline-none cursor-not-allowed opacity-70"
                     placeholder="Precio"
                   />
 
@@ -630,52 +663,55 @@ export default function VentasPage() {
                     type="button"
                     onClick={() => handleRemoveItem(index)}
                     disabled={formData.items.length === 1}
-                    className="col-span-1 h-11 rounded-xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1e1e1e] hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-40 flex items-center justify-center"
+                    className="col-span-1 h-11 flex items-center justify-center rounded-xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-white/5 text-gray-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-500 dark:hover:text-rose-400 hover:border-rose-200 dark:hover:border-rose-500/30 transition-all disabled:opacity-40"
                   >
-                    <Trash2 className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               ))}
             </div>
 
             {formData.branchId && products.length === 0 && !loadingProducts && (
-              <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold">
-                No hay productos con stock en esta sede. Crea entradas en Inventario primero.
+              <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                No hay productos con stock en esta sede.
               </p>
             )}
 
             {(stockExceededMessage || formError) && (
-              <p className="text-xs font-semibold text-red-600 dark:text-red-400">{stockExceededMessage || formError}</p>
+              <p className="text-xs font-medium text-rose-500 dark:text-rose-400">{stockExceededMessage || formError}</p>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Estado</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'paid' | 'pending' })}
-                className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
-              >
-                <option value="paid">Pagado</option>
-                <option value="pending">Pendiente</option>
-              </select>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Estado</label>
+              <div className="relative group">
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as 'paid' | 'pending' })}
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl font-medium text-sm text-gray-800 dark:text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all"
+                >
+                  <option value="paid" className="dark:bg-gray-900">Pagado</option>
+                  <option value="pending" className="dark:bg-gray-900">Pendiente</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-violet-500 transition-colors" />
+              </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Total calculado (S/)</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total calculado (S/)</label>
               <input
                 readOnly
                 value={computedTotal.toFixed(2)}
-                className="w-full px-5 py-3 bg-gray-100 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-2xl font-bold text-sm text-right text-black dark:text-white"
+                className="w-full px-4 py-3 bg-gray-100/80 dark:bg-white/10 border border-gray-200/50 dark:border-transparent rounded-2xl font-bold text-sm text-right text-gray-900 dark:text-white"
               />
             </div>
           </div>
 
-          <div className="pt-6 flex justify-end">
+          <div className="pt-4 flex justify-end">
             <button
               type="submit"
               disabled={isSubmitting || loadingProducts || !!stockExceededMessage}
-              className="flex items-center gap-2 px-8 py-4 bg-[#7c3aed] text-white rounded-2xl font-bold hover:bg-[#6d28d9] transition-all shadow-xl shadow-[#7c3aed]/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-8 py-3.5 bg-violet-600 hover:bg-violet-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-2xl font-medium transition-all shadow-lg shadow-violet-600/20 active:scale-[0.98] disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Finalizar Venta

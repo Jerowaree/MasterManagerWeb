@@ -137,102 +137,131 @@ export default function SucursalesPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-black dark:text-white font-heading">Sucursales</h1>
-          <p className="text-gray-500 dark:text-gray-400">Configura y monitorea todas tus sedes operativas.</p>
+    <div className="space-y-6 md:space-y-8 min-h-screen bg-white dark:bg-transparent pb-10">
+      
+      {/* HEADER REESTRUCTURADO */}
+      <div className="flex flex-col gap-1.5 md:gap-2">
+        <div className="flex items-center justify-between w-full gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white tracking-tight truncate">
+            Sucursales
+          </h1>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center justify-center gap-1.5 md:gap-2 px-3.5 py-2.5 md:px-6 md:py-3 bg-violet-600 hover:bg-violet-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-xl md:rounded-2xl font-medium transition-all shadow-lg shadow-violet-600/20 active:scale-[0.98] text-sm md:text-base shrink-0"
+          >
+            <Plus className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">Nueva sucursal</span>
+            <span className="sm:hidden">Nueva</span>
+          </button>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-[#7c3aed] text-white rounded-2xl font-bold hover:bg-[#6d28d9] transition-all shadow-lg shadow-[#7c3aed]/20 w-fit"
-        >
-          <Plus className="w-5 h-5" />
-          Nueva Sucursal
-        </button>
+        <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">
+          Configura y monitorea todas tus sedes operativas.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* GRID DE SUCURSALES */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {loading && branches.length === 0 ? (
-          Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="bg-white dark:bg-[#141414] p-8 rounded-3xl border border-gray-200 dark:border-white/5 animate-pulse h-64" />
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white dark:bg-white/5 dark:backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-gray-200/80 dark:border-white/10 animate-pulse h-64 shadow-sm" />
           ))
         ) : branches.length > 0 ? (
           branches.map((branch) => (
-            <div key={branch.id} className="bg-white dark:bg-[#141414] p-8 rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-[#7c3aed]/5 dark:bg-purple-500/10 rounded-bl-[100px] -mr-8 -mt-8 group-hover:bg-[#7c3aed]/10 dark:group-hover:bg-purple-500/20 transition-colors" />
+            <div 
+              key={branch.id} 
+              className="bg-white dark:bg-white/5 dark:backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-gray-200/80 dark:border-white/10 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.03)] hover:border-violet-300 dark:hover:border-purple-500/30 transition-all relative overflow-hidden group flex flex-col h-full"
+            >
+              {/* Resplandor superior derecho decorativo */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 dark:bg-purple-500/10 blur-2xl rounded-bl-full -mr-8 -mt-8 group-hover:bg-violet-500/10 dark:group-hover:bg-purple-500/20 transition-colors duration-500 pointer-events-none" />
 
-              <div className="w-14 h-14 bg-purple-50 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6">
-                <Building2 className="w-8 h-8 text-[#7c3aed] dark:text-purple-400" />
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-violet-50/50 dark:bg-purple-500/10 border border-violet-100 dark:border-purple-500/20 rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-sm relative z-10">
+                <Building2 className="w-6 h-6 md:w-7 md:h-7 text-violet-600 dark:text-purple-400" />
               </div>
 
-              <h3 className="text-xl font-bold text-black dark:text-white mb-4">{branch.name}</h3>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 tracking-tight relative z-10">{branch.name}</h3>
 
-              <div className="space-y-4">
+              <div className="space-y-3.5 flex-1 relative z-10">
                 <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-[#1e1e1e] flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-gray-400" />
                   </div>
-                  <span className="font-medium">{branch.timezone}</span>
+                  <span className="font-medium truncate">{branch.timezone}</span>
                 </div>
+                
                 {branch.address && (
                   <div className="flex items-start gap-3 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-[#1e1e1e] flex items-center justify-center shrink-0">
-                      <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4 text-gray-400" />
                     </div>
-                    <span className="font-medium leading-snug">{branch.address}</span>
+                    <span className="font-medium leading-relaxed pt-1">{branch.address}</span>
                   </div>
                 )}
+                
                 {branch.latitude != null && branch.longitude != null && (
-                  <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-white/5">
+                  <div className="rounded-2xl overflow-hidden border border-gray-200/80 dark:border-white/10 shadow-sm mt-4">
                     <iframe
                       title={`map-${branch.id}`}
                       src={buildOsmEmbedUrl(Number(branch.latitude), Number(branch.longitude)) ?? undefined}
-                      className="w-full h-40"
+                      className="w-full h-36 md:h-40 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                       loading="lazy"
                     />
                   </div>
                 )}
-                <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-[#1e1e1e] flex items-center justify-center">
-                    <Globe className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                
+                <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 pt-2">
+                  <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 flex items-center justify-center shrink-0">
+                    <Globe className="w-4 h-4 text-gray-400" />
                   </div>
-                  <span className="font-medium text-xs truncate">ID: {branch.id}</span>
+                  <span className="font-medium text-[11px] truncate uppercase tracking-wider">ID: {branch.id.slice(0, 12)}...</span>
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-white/5 flex justify-between items-center text-xs font-black uppercase tracking-widest">
-                <span className="text-green-500 dark:text-green-400">Activo</span>
-                <button className="text-[#7c3aed] dark:text-purple-400 hover:underline">Gestionar Sede</button>
+              <div className="mt-6 pt-5 md:mt-8 md:pt-6 border-t border-gray-100 dark:border-white/10 flex justify-between items-center text-[10px] md:text-xs font-bold uppercase tracking-widest relative z-10">
+                <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Activo
+                </span>
+                <button className="text-violet-600 dark:text-purple-400 hover:text-violet-700 dark:hover:text-purple-300 transition-colors">
+                  Gestionar Sede
+                </button>
               </div>
             </div>
           ))
         ) : (
-          <p className="col-span-full text-center text-gray-400 dark:text-gray-500 py-20 italic">No se encontraron sucursales.</p>
+          <div className="col-span-full bg-white dark:bg-white/5 dark:backdrop-blur-xl p-20 rounded-3xl border border-gray-200/80 dark:border-white/10 border-dashed text-center shadow-sm">
+            <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Building2 className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">No se encontraron sucursales.</p>
+          </div>
         )}
       </div>
-      <PaginationControls
-        meta={branchesPagination}
-        isLoading={loading}
-        onPageChange={setBranchesPage}
-      />
+      
+      <div className="flex justify-center w-full mt-2">
+        <PaginationControls
+          meta={branchesPagination}
+          isLoading={loading}
+          onPageChange={setBranchesPage}
+        />
+      </div>
 
+      {/* MODAL: CREAR SEDE */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Crear Nueva Sede">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nombre de la Sede</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Nombre de la Sede</label>
             <input
               required
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ej: Sede Norte o Almacén Central"
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all font-medium text-sm text-gray-800 dark:text-white placeholder-gray-400"
             />
           </div>
 
           <div className="space-y-2 relative">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Dirección</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Dirección</label>
             <input
               type="text"
               value={formData.address}
@@ -244,20 +273,24 @@ export default function SucursalesPage() {
                   longitude: undefined,
                 })
               }
-              placeholder="Escribe una dirección para sugerencias OSM"
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              placeholder="Escribe una dirección para buscar..."
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all font-medium text-sm text-gray-800 dark:text-white placeholder-gray-400"
             />
             {isSearchingAddress && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Buscando dirección...</p>
+              <p className="text-xs text-violet-500 dark:text-purple-400 mt-2 font-medium flex items-center gap-1.5">
+                <Loader2 className="w-3 h-3 animate-spin" /> Buscando dirección...
+              </p>
             )}
+            
+            {/* Menú flotante de sugerencias adaptado al Dark Mode */}
             {addressSuggestions.length > 0 && (
-              <div className="mt-2 max-h-52 overflow-y-auto rounded-2xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1e1e1e] shadow-lg">
+              <div className="absolute z-50 w-full mt-1 max-h-52 overflow-y-auto rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a2e] shadow-xl custom-scrollbar">
                 {addressSuggestions.map((item) => (
                   <button
                     key={item.placeId}
                     type="button"
                     onClick={() => handleSelectAddress(item)}
-                    className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-white/5 border-b last:border-b-0 border-gray-200 dark:border-white/5 text-black dark:text-white"
+                    className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-white/5 border-b last:border-b-0 border-gray-100 dark:border-white/5 text-gray-700 dark:text-gray-200 transition-colors"
                   >
                     {item.displayName}
                   </button>
@@ -268,8 +301,8 @@ export default function SucursalesPage() {
 
           {formData.latitude != null && formData.longitude != null && (
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Mapa de referencia</label>
-              <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-white/5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Mapa de referencia</label>
+              <div className="rounded-2xl overflow-hidden border border-gray-200/80 dark:border-white/10 shadow-sm">
                 <iframe
                   title="map-preview"
                   src={buildOsmEmbedUrl(formData.latitude, formData.longitude) ?? undefined}
@@ -281,17 +314,17 @@ export default function SucursalesPage() {
           )}
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Zona Horaria (Timezone)</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Zona Horaria (Timezone)</label>
             <select
               value={formData.timezone}
               onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-              className="w-full px-5 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] outline-none transition-all font-bold text-sm text-black dark:text-white appearance-none"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/80 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all font-medium text-sm text-gray-800 dark:text-white appearance-none"
             >
-              <option value="America/Lima">Perú (America/Lima)</option>
-              <option value="America/Mexico_City">México (CDMX)</option>
-              <option value="America/Bogota">Colombia (Bogotá)</option>
-              <option value="America/Santiago">Chile (Santiago)</option>
-              <option value="UTC">UTC (Global)</option>
+              <option value="America/Lima" className="dark:bg-gray-900">Perú (America/Lima)</option>
+              <option value="America/Mexico_City" className="dark:bg-gray-900">México (CDMX)</option>
+              <option value="America/Bogota" className="dark:bg-gray-900">Colombia (Bogotá)</option>
+              <option value="America/Santiago" className="dark:bg-gray-900">Chile (Santiago)</option>
+              <option value="UTC" className="dark:bg-gray-900">UTC (Global)</option>
             </select>
           </div>
 
@@ -299,7 +332,7 @@ export default function SucursalesPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-8 py-4 bg-[#7c3aed] text-white rounded-2xl font-bold hover:bg-[#6d28d9] transition-all shadow-xl shadow-[#7c3aed]/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-8 py-3.5 bg-violet-600 hover:bg-violet-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-2xl font-medium transition-all shadow-lg shadow-violet-600/20 active:scale-[0.98] disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Registrar Sede

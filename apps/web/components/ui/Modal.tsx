@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,6 +13,13 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+  // Estado para asegurarnos de que solo renderice el portal en el cliente (evita errores de hidratación en Next.js)
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -23,10 +31,14 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     };
   }, [isOpen]);
 
-  return (
+  // Si no estamos en el cliente aún, no renderizamos nada
+  if (!mounted) return null;
+
+  // Usamos createPortal para "sacar" el modal de la jerarquía de componentes que lo atrapa
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           {/* Overlay oscuro */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -47,6 +59,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             <div className="px-6 md:px-8 py-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-white/50 dark:bg-white/5">
               <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white tracking-tight">{title}</h3>
               <button 
+                type="button"
                 onClick={onClose}
                 className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-all"
               >
@@ -61,6 +74,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body // <-- El portal lo inyecta directo en el body
   );
 }

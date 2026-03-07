@@ -352,7 +352,7 @@ function StatCard({ title, value, trend, positive, subValue, isProgress }: {
       
       <div className="flex flex-col relative z-10">
         <span 
-          title={value}
+          title={String(value)} /* <--- AQUÍ ESTÁ LA CORRECCIÓN */
           className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white tracking-tight truncate"
         >
           {value}

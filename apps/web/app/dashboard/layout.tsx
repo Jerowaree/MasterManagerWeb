@@ -23,7 +23,7 @@ import {
   X,
   FileText,
 } from 'lucide-react';
-import { motion, AnimatePresence, easeInOut } from 'framer-motion';
+import { motion, AnimatePresence, Transition } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
@@ -82,7 +82,7 @@ export default function DashboardLayout({
 
   if (!isAuthenticated) return null;
 
-  const transitionConfig = { duration: 0.3, ease: easeInOut };
+  const transitionConfig: Transition = { duration: 0.3, ease: "easeInOut" };
 
   const renderSidebarContent = (expanded: boolean, isMobileView: boolean = false) => (
     <>
@@ -121,7 +121,7 @@ export default function DashboardLayout({
         <SidebarItem icon={ShoppingCart} label="Ventas" href="/dashboard/ventas" active={pathname === '/dashboard/ventas'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={FileText} label="Cobranza" href="/dashboard/cobranza" active={pathname === '/dashboard/cobranza'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={Package} label="Inventario" href="/dashboard/inventario" active={pathname === '/dashboard/inventario'} isExpanded={expanded} transitionConfig={transitionConfig} />
-        <SidebarItem icon={ArrowRightLeft} label="Movimientos" href="/dashboard/movimientos" active={pathname === '/dashboard/movimientos'} isExpanded={expanded} transitionConfig={transitionConfig} />
+        <SidebarItem icon={ArrowRightLeft} label="Historial" href="/dashboard/historial" active={pathname === '/dashboard/historial'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={Building2} label="Sucursales" href="/dashboard/sucursales" active={pathname === '/dashboard/sucursales'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={Users} label="Clientes" href="/dashboard/clientes" active={pathname === '/dashboard/clientes'} isExpanded={expanded} transitionConfig={transitionConfig} />
         <SidebarItem icon={Truck} label="Proveedores" href="/dashboard/proveedores" active={pathname === '/dashboard/proveedores'} isExpanded={expanded} transitionConfig={transitionConfig} />
@@ -154,27 +154,25 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="h-screen bg-white dark:bg-[#0f0a1e] flex overflow-hidden relative">
+    // CAMBIO IMPORTANTE: h-[100dvh] en lugar de h-screen para navegadores móviles
+    <div className="h-[100dvh] bg-white dark:bg-[#0f0a1e] flex overflow-hidden relative">
       
-      {/* Luces de fondo difuminadas estilo Login */}
       <div className="absolute top-0 right-0 w-full h-full pointer-events-none z-0 hidden dark:block">
         <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-600/20 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[50%] bg-violet-600/10 rounded-full blur-[120px]" />
       </div>
 
-      {/* 1. Sidebar Desktop */}
       <motion.aside
         initial={false}
         animate={{ width: isExpanded ? 260 : 80 }}
         transition={transitionConfig}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
-        className="bg-white dark:bg-white/5 text-gray-900 dark:text-white hidden lg:flex flex-col fixed h-screen top-0 left-0 z-50 border-r border-gray-200 dark:border-white/10 dark:backdrop-blur-xl overflow-hidden py-6"
+        className="bg-white dark:bg-white/5 text-gray-900 dark:text-white hidden lg:flex flex-col fixed h-[100dvh] top-0 left-0 z-50 border-r border-gray-200 dark:border-white/10 dark:backdrop-blur-xl overflow-hidden py-6"
       >
         {renderSidebarContent(isExpanded, false)}
       </motion.aside>
 
-      {/* 2. Overlay Móvil */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -188,7 +186,6 @@ export default function DashboardLayout({
         )}
       </AnimatePresence>
 
-      {/* 3. Sidebar Móvil (Drawer) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.aside
@@ -196,25 +193,23 @@ export default function DashboardLayout({
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 left-0 h-screen w-[260px] bg-white dark:bg-[#0f0a1e]/90 dark:backdrop-blur-2xl z-[70] lg:hidden flex flex-col border-r border-gray-200 dark:border-white/10 py-6 shadow-2xl"
+            className="fixed top-0 left-0 h-[100dvh] w-[260px] bg-white dark:bg-[#0f0a1e]/90 dark:backdrop-blur-2xl z-[70] lg:hidden flex flex-col border-r border-gray-200 dark:border-white/10 py-6 shadow-2xl"
           >
             {renderSidebarContent(true, true)}
           </motion.aside>
         )}
       </AnimatePresence>
 
-      {/* Main Area */}
       <motion.div 
         initial={false} 
         animate={{ marginLeft: isMobile ? 0 : (isExpanded ? 260 : 80) }} 
         transition={transitionConfig} 
-        className="flex-1 h-screen flex flex-col bg-transparent overflow-hidden w-full relative z-10"
+        className="flex-1 h-[100dvh] flex flex-col bg-transparent overflow-hidden w-full relative z-10"
       >
-        {/* Header */}
-        <header className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-3 md:py-5 sticky top-0 bg-white/80 dark:bg-[#0f0a1e]/50 backdrop-blur-md dark:backdrop-blur-2xl z-40 border-b border-gray-200 dark:border-white/10">
+        {/* CAMBIO IMPORTANTE: Quitamos sticky y aseguramos el flex behavior */}
+        <header className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-3 md:py-4 relative bg-white/80 dark:bg-[#0f0a1e]/50 backdrop-blur-md dark:backdrop-blur-2xl z-40 border-b border-gray-200 dark:border-white/10">
           
           <div className="flex items-center">
-            {/* Botón Hamburguesa Móvil */}
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
               className="lg:hidden p-2.5 mr-3 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
@@ -222,7 +217,6 @@ export default function DashboardLayout({
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Buscador Desktop */}
             <div className="hidden md:flex items-center gap-4 pr-6 border-r border-gray-200 dark:border-white/10">
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 group-focus-within:text-violet-400 transition-colors" />
@@ -235,7 +229,6 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          {/* Acciones del Header */}
           <div className="flex items-center gap-2 md:gap-5">
             <div className="flex items-center gap-1 md:gap-2 pr-2 md:pr-4 border-r border-gray-200 dark:border-white/10">
               <button className="p-2 md:p-2.5 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/10 rounded-xl transition-all relative hover:bg-gray-200 dark:hover:bg-white/10 group">
@@ -266,7 +259,7 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth z-10">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth z-10 relative">
           {children}
         </main>
       </motion.div>
@@ -280,7 +273,7 @@ function SidebarItem({ icon: Icon, href, label, active = false, isExpanded, tran
   label: string;
   active?: boolean;
   isExpanded: boolean;
-  transitionConfig: { duration: number; ease: number[] | string };
+  transitionConfig: Transition;
 }) {
   return (
     <Link href={href} className="block">
